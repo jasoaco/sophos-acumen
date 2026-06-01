@@ -149,9 +149,9 @@ Because it loads unpacked, distribution today is "clone/download the folder and 
 ## Usage
 
 1. Navigate to `https://central.sophos.com` and sign in.
-2. Click the **Sophos Acumen** toolbar icon — the **side panel** opens. Everything lives here, in three tabs: **Coach · Inject · Analyze**.
+2. Click the **Sophos Acumen** toolbar icon — the **side panel** opens. Everything lives here, in three tabs: **Coach · Demo · Analyze**.
 3. **Coach** (default): auto-detects the product from the page, or pick any product from the dropdown. Switch between **Talk Track / Discovery / Objections / Compete** and choose your audience.
-4. **Inject:** pick a scenario, set the customer name and endpoint/server counts, toggle injection **on**, and launch Central (optionally via the **Prelude** staging intro). Your scenario's data renders in the real UI. Import/export custom scenarios here too.
+4. **Demo:** pick a scenario, set the customer name and endpoint/server counts, toggle injection **on**, and launch Central (optionally via the **Prelude** staging intro). Your scenario's data renders in the real UI. Import/export custom scenarios here too.
 5. **Analyze:** snapshot and interpret the current page; ask follow-up questions.
 
 > ⚠️ Injection modifies what *you* see in your browser only. It does not change any data in Sophos Central, your tenant, or anyone else's session. Toggle it off (or close the tab) to return to reality.

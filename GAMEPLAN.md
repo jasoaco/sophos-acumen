@@ -12,7 +12,7 @@ Goal: one extension that loads, with both subsystems intact but independent.
 
 ## Phase 1 — One UI ✅
 Goal: fold injection controls into the side panel; retire the popup as the primary surface.
-- [x] Side panel gets a third tab: **Inject** (scenario picker, customer name/counts, toggle, import/export, launch) — tab order **Coach | Inject | Analyze**
+- [x] Side panel gets a third tab: **Demo** (scenario picker, customer name/counts, toggle, import/export, launch) — tab order **Coach | Demo | Analyze**. Internal id/mode stays `inject`.
 - [x] Inject tab talks to the existing service worker (`LIST_SCENARIOS` / `GET_STATE` / `SET_STATE` / `IMPORT`/`EXPORT`/`DELETE_SCENARIO`) — no interceptor or service-worker changes
 - [x] Action icon opens the side panel directly (`default_popup` dropped; `openPanelOnActionClick` set in the service worker)
 - [x] Verified via harness (service-worker mock): Inject tab populates, active-tab + panel switching correct (DOM-confirmed)
