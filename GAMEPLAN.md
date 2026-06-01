@@ -25,10 +25,12 @@ Goal: injection and coaching share state.
 
 ## Phase 3 — AI + enablement
 Goal: port the `intake-site` AI features and add the learning loop.
-- Port `intake-site/server` endpoints: scenario generator, battle cards, post-demo follow-up, prospect enrichment
-- **Roleplay sparring**: AI plays a skeptical CISO using the product's objection data; scores the SE's responses
-- **Flashcards**: spaced-repetition drill over objections + discovery questions
-- Readiness tracking per product
+- [x] Import `intake-site/` (scenario generator, presets, demo-script, battle cards, post-demo follow-up, prospect enrichment, remix/make-mine) — standalone Node server, port 3847, pluggable LLM backend
+- [x] `.gitignore` guards keys (`intake-site/.settings.json`, `.env`, `*.key`)
+- [ ] Wire intake-site generators into the extension side panel (not just the standalone site)
+- [ ] **Roleplay sparring**: AI plays a skeptical CISO using the product's objection data; scores the SE's responses
+- [ ] **Flashcards**: spaced-repetition drill over objections + discovery questions
+- [ ] Readiness tracking per product
 
 ## Phase 4 — Polish
 - Harvest real Central URL slugs (only `endpoint` confirmed) → complete `SEGMENT_MAP`

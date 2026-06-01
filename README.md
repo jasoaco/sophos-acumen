@@ -15,6 +15,7 @@
 - [Architecture](#architecture)
 - [How to Deploy](#how-to-deploy)
 - [Usage](#usage)
+- [AI Companion: The Intake Site](#ai-companion-the-intake-site)
 - [Updating Content](#updating-content)
 - [Project Structure](#project-structure)
 - [Roadmap](#roadmap)
@@ -107,6 +108,10 @@ scripts/
 test/
   harness.html               mocks chrome.* to drive the side panel outside the extension
   check-routes.js            asserts every product is reachable by the route map
+intake-site/                 OPTIONAL companion web app — AI scenario/content generation (Node server)
+  server/index.mjs           raw HTTP server, port 3847
+  server/llm.mjs             pluggable LLM backend (Anthropic / OpenAI / local / Pi)
+  public/                    browser UI (scenario generator, settings, guide)
 ```
 
 **State flow for injection:** popup → service worker (`chrome.storage.local`) → bridge (ISOLATED) → custom DOM event → interceptor (MAIN) → applied on the next `fetch`/`XHR`.
@@ -153,6 +158,36 @@ Because it loads unpacked, distribution today is "clone/download the folder and 
 
 ---
 
+## AI Companion: The Intake Site
+
+`intake-site/` is an **optional** companion web app for *generating* content with an LLM — you don't need it to run the extension, but it's how you produce new scenarios and sales collateral at speed. It's a standalone Node HTTP server (no framework) that serves a small browser UI and a set of AI endpoints.
+
+**What it generates:**
+| Endpoint | Produces |
+|---|---|
+| `/api/generate`, `/api/generate-stream` | A full demo scenario JSON from a plain-English brief |
+| `/api/presets` | Industry-tailored scenario presets |
+| `/api/demo-script` | A spoken demo script for a scenario |
+| `/api/battle-card` | A competitive battle card |
+| `/api/post-demo-report` | A post-demo follow-up email |
+| `/api/enrich-prospect` | Prospect / account enrichment notes |
+| `/api/remix`, `/api/make-mine` | Variations / customer-specific rewrites of an existing scenario |
+
+**Workflow:** generate a scenario in the intake site → export the JSON → import it into the extension's popup (📥). The site and the extension are decoupled; they share the scenario JSON format (`scenarios/SCHEMA.md`), not a live connection.
+
+**Run it:**
+```bash
+cd intake-site
+npm install                      # installs the optional Pi backend; Anthropic/OpenAI work without it
+export ANTHROPIC_API_KEY=sk-...  # or OPENAI_API_KEY, or point LLM_BASE_URL at a local model
+npm start                        # serves on http://localhost:3847
+```
+Provider and key can also be set at runtime via the site's **Settings** page, which persists to `intake-site/.settings.json`.
+
+> 🔒 **Never commit API keys.** `intake-site/.settings.json`, `.env`, and `*.key` are gitignored. Prefer environment variables; treat any key pasted into the Settings UI as living only in the gitignored settings file on your own machine.
+
+---
+
 ## Updating Content
 
 - **Field guide (Coach content):** the source of truth is Ryan Gebauer's Sophos Field Guide HTML. Re-extract with:
@@ -186,7 +221,8 @@ The merge landed as **Phase 0** — a unified extension where injection (popup) 
 - A scenario-specific **demo flow** view: an ordered screen walkthrough driven by the scenario's defined click path.
 
 ### Phase 3 — AI & enablement
-- Port the Demo Injector's AI tooling (scenario generator, competitive battle cards, post-demo follow-up email, prospect enrichment).
+- ✅ Import the AI tooling (scenario generator, battle cards, post-demo follow-up, prospect enrichment) — now in `intake-site/`.
+- Wire the intake-site generators into the extension itself (generate a scenario from the side panel, not just the standalone site).
 - **Roleplay sparring:** an AI plays a skeptical CISO using the product's objection data, and scores your responses.
 - **Flashcards:** spaced-repetition drills over discovery questions and objections.
 - **Readiness tracking** per product ("can you demo this?").
