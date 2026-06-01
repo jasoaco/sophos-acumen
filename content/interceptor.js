@@ -26,6 +26,24 @@
   let activeScenario = null;  // Resolved scenario data (after template processing)
   let interceptedCount = 0;
 
+  // ─── State-ready gate (fixes the document_start race) ──────────────
+  // fetch/XHR are overridden synchronously at document_start, but scenario
+  // state arrives asynchronously (bridge → service-worker round-trip, plus
+  // MV3 cold-start latency). Without this, the page's earliest API calls fire
+  // before `demoState`/`activeScenario` are set and pass through unmodified —
+  // which looked like "injection works inconsistently". We gate sophos API
+  // calls until the first state push lands, with a timeout so non-demo
+  // browsing is never blocked indefinitely.
+  let stateReadySettled = false;
+  let resolveStateReady;
+  const stateReady = new Promise((resolve) => { resolveStateReady = resolve; });
+  function markStateReady() {
+    if (stateReadySettled) return;
+    stateReadySettled = true;
+    resolveStateReady();
+  }
+  setTimeout(markStateReady, 1500); // safety net: never block longer than this
+
   // Listen for state updates from the isolated world content script
   window.addEventListener('__sophos_demo_state_update__', (e) => {
     demoState = e.detail;
@@ -41,8 +59,9 @@
       console.log('[Sophos Demo]', '📦 Scenario loaded:', activeScenario.name || e.detail.scenario);
     }
 
-    console.log('[Sophos Demo]', demoState.enabled ? '🟢 ENABLED' : '🔴 DISABLED', 
+    console.log('[Sophos Demo]', demoState.enabled ? '🟢 ENABLED' : '🔴 DISABLED',
       `scenario=${demoState.scenario}`, `customer=${demoState.customerName}`);
+    markStateReady();
   });
 
   // Load state from DOM if already set
@@ -55,6 +74,7 @@
         if (parsed.scenarioData) {
           activeScenario = resolveScenario(parsed.scenarioData, demoState);
         }
+        markStateReady();
       } catch (e) {}
     }
   }
@@ -1101,6 +1121,10 @@
       return originalFetch.apply(this, args);
     }
 
+    // Wait for scenario state before deciding (eliminates the document_start
+    // race). Resolves instantly once state has loaded; capped by the timeout.
+    if (!stateReadySettled) await stateReady;
+
     if (!demoState.enabled) {
       return originalFetch.apply(this, args);
     }
@@ -1213,6 +1237,18 @@
       this._demoUrl = url;
       this._demoMethod = method;
       return super.open(method, url, ...rest);
+    }
+
+    // Defer the actual network call for sophos URLs until scenario state has
+    // loaded, so early XHRs don't race ahead of the async state push. Once
+    // state is ready (or after the timeout), send() is synchronous as normal.
+    send(...args) {
+      const u = this._demoUrl || '';
+      const isSophos = u.includes('sophos.com') || u.includes('sophosapis.com');
+      if (stateReadySettled || !isSophos) {
+        return super.send(...args);
+      }
+      stateReady.then(() => { try { super.send(...args); } catch (e) {} });
     }
 
     // Check if this XHR is for a fake case and synthesize response if needed
