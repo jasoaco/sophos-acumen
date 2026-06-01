@@ -10,12 +10,14 @@ Goal: one extension that loads, with both subsystems intact but independent.
 - [x] Static verification: manifest valid, scenarios parse, field guide parses, referenced files present
 - [ ] **Gate: load unpacked in Chrome — confirm injection still works AND the coach panel opens** (needs human)
 
-## Phase 1 — One UI
+## Phase 1 — One UI ✅
 Goal: fold injection controls into the side panel; retire the popup as the primary surface.
-- Side panel gets a third tab: **Inject** (scenario picker, customer name/counts, toggle) alongside Coach + Analyst
-- Inject tab talks to the existing service worker (`SET_STATE` / `LIST_SCENARIOS`) — no interceptor changes
-- Action icon opens the side panel directly (drop `default_popup`, set `openPanelOnActionClick`)
-- Popup either removed or kept as a quick-toggle shortcut
+- [x] Side panel gets a third tab: **Inject** (scenario picker, customer name/counts, toggle, import/export, launch) — tab order **Coach | Inject | Analyze**
+- [x] Inject tab talks to the existing service worker (`LIST_SCENARIOS` / `GET_STATE` / `SET_STATE` / `IMPORT`/`EXPORT`/`DELETE_SCENARIO`) — no interceptor or service-worker changes
+- [x] Action icon opens the side panel directly (`default_popup` dropped; `openPanelOnActionClick` set in the service worker)
+- [x] Verified via harness (service-worker mock): Inject tab populates, active-tab + panel switching correct (DOM-confirmed)
+- [ ] **Open decision: retire `popup/` entirely, or keep a stripped quick-toggle?** Files remain in place, now unreferenced by the action.
+- [ ] **Gate: load unpacked in Chrome — confirm icon opens panel, Inject toggle drives injection** (needs human)
 
 ## Phase 2 — The link (the actual payoff)
 Goal: injection and coaching share state.

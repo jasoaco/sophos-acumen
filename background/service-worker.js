@@ -7,6 +7,12 @@
  * 3. Chrome storage (persisted custom scenarios)
  */
 
+// ─── Side panel ──────────────────────────────────────────────────────
+// The toolbar icon opens the unified side panel (Coach / Inject / Analyze).
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((e) => console.error('setPanelBehavior failed:', e));
+
 // ─── Built-in Scenario Registry ──────────────────────────────────────
 const BUILTIN_SCENARIOS = ['ransomware', 'mdr', 'phishing', 'xdr', 'insider', 'supply-chain', 'bec', 'zero-day', 'healthy'];
 

@@ -288,6 +288,74 @@
     }
 
     /* ══════════════════════════════
+       INJECT MODE
+    ══════════════════════════════ */
+    #inject-panel { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .inject-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0,168,224,0.10), rgba(0,168,224,0.04));
+      border: 1px solid rgba(0,168,224,0.22);
+    }
+    .inject-toggle-title { font-size: 14px; font-weight: 800; color: var(--text); }
+    .inject-toggle-note { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .inject-section {
+      padding: 12px 14px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    #inject-panel select,
+    #inject-panel input[type="text"],
+    #inject-panel input[type="number"] {
+      width: 100%; font-size: 12px; font-weight: 600;
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+    }
+    .scenario-desc { font-size: 11px; line-height: 1.5; color: var(--muted); min-height: 1em; }
+    .inject-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn.sm, button.sm { padding: 6px 10px; font-size: 11px; border-radius: 8px; flex: 1; }
+    button.danger { background: rgba(255,77,90,0.16); color: #ffc8cf; border: 1px solid rgba(255,77,90,0.22); flex: 0 0 auto; }
+    button.block { display: block; width: 100%; text-align: center; margin: 0; }
+    .import-area { display: flex; flex-direction: column; gap: 6px; }
+    .import-area textarea {
+      width: 100%; resize: vertical; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); padding: 8px; font: inherit; font-size: 11px;
+    }
+    .inject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .inject-grid label { display: flex; flex-direction: column; gap: 3px; }
+    .inject-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .inject-check { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #cbd5e1; cursor: pointer; }
+    .inject-status-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: var(--muted); padding: 0 4px;
+    }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status-dot.active { background: var(--emerald); box-shadow: 0 0 6px var(--emerald); }
+    .status-dot.inactive { background: #64748b; }
+    /* Toggle switch */
+    .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; cursor: pointer; border-radius: 999px;
+      background: #475569; transition: 0.2s;
+    }
+    .slider::before {
+      content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .switch input:checked + .slider { background: var(--emerald); }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+    .toast {
+      position: fixed; bottom: 12px; left: 12px; right: 12px;
+      padding: 10px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      background: rgba(52,211,153,0.16); color: #a7f3d0; border: 1px solid rgba(52,211,153,0.3);
+      opacity: 0; transform: translateY(8px); transition: 0.2s; pointer-events: none;
+    }
+    .toast.success { opacity: 1; transform: translateY(0); }
+    .toast.error { opacity: 1; transform: translateY(0); background: rgba(255,77,90,0.16); color: #ffc8cf; border-color: rgba(255,77,90,0.3); }
+
+    /* ══════════════════════════════
        ANALYST MODE (Watchman)
     ══════════════════════════════ */
     #analyst-panel { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
@@ -366,7 +434,8 @@
   <!-- Mode toggle -->
   <div class="mode-tabs">
     <button class="mode-tab active" data-mode="coach">Coach</button>
-    <button class="mode-tab" data-mode="analyst">Analyst</button>
+    <button class="mode-tab" data-mode="inject">Inject</button>
+    <button class="mode-tab" data-mode="analyst">Analyze</button>
   </div>
 
   <!-- Panel body -->
@@ -418,6 +487,71 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- ── INJECT MODE ── -->
+    <div id="inject-panel" style="display:none">
+
+      <!-- Master toggle -->
+      <div class="inject-toggle-row">
+        <div>
+          <div class="inject-toggle-title">Demo Injection</div>
+          <div class="inject-toggle-note">Renders fake data in your browser only</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Scenario -->
+      <div class="inject-section">
+        <div class="label">Scenario</div>
+        <select id="scenario"></select>
+        <div class="scenario-desc" id="scenarioDesc"></div>
+        <div class="inject-btn-row">
+          <button class="ghost sm" id="importBtn" title="Paste scenario JSON">📥 Import</button>
+          <button class="ghost sm" id="exportBtn" title="Download current scenario">📤 Export</button>
+          <button class="ghost sm" id="fileBtn" title="Load from file">📁 File</button>
+          <button class="ghost sm danger" id="deleteBtn" title="Delete custom scenario" style="display:none">🗑️</button>
+        </div>
+        <div class="import-area" id="importArea" style="display:none">
+          <textarea id="importJson" rows="4" placeholder="Paste scenario JSON here..."></textarea>
+          <div class="inject-btn-row">
+            <button class="ghost sm" id="cancelImport">Cancel</button>
+            <button class="primary sm" id="confirmImport">Import</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer -->
+      <div class="inject-section">
+        <div class="label">Customer</div>
+        <input type="text" id="customerName" value="Contoso Healthcare" placeholder="Customer name" />
+        <div class="inject-grid">
+          <label><span class="inject-field-label">Endpoints</span>
+            <input type="number" id="endpointCount" value="2500" min="10" max="50000" /></label>
+          <label><span class="inject-field-label">Servers</span>
+            <input type="number" id="serverCount" value="186" min="0" max="5000" /></label>
+        </div>
+        <label class="inject-check"><input type="checkbox" id="showBadge" checked /> Show floating demo badge</label>
+      </div>
+
+      <!-- Launch -->
+      <div class="inject-section">
+        <div class="label">Launch</div>
+        <button class="primary block" id="launchPreludeBtn">Open Central + Prelude</button>
+        <button class="ghost block" id="launchDirectBtn">Open Central (skip intro)</button>
+        <button class="ghost block" id="previewBtn">Preview intro only</button>
+      </div>
+
+      <div class="inject-status-bar">
+        <span><span class="status-dot inactive" id="statusDot"></span><span id="statusText">Inactive</span></span>
+        <span id="interceptedText"></span>
+      </div>
+
+      <div class="toast" id="toast"></div>
+      <input type="file" id="fileInput" accept=".json" style="display:none" />
     </div>
 
     <!-- ── ANALYST MODE ── -->

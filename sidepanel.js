@@ -145,13 +145,16 @@ async function getPageSnapshot() {
 }
 
 // ── Mode switching ──
+const MODE_PANELS = { coach: 'coach-panel', inject: 'inject-panel', analyst: 'analyst-panel' };
 document.querySelectorAll('.mode-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     currentMode = btn.dataset.mode;
-    document.getElementById('coach-panel').style.display = currentMode === 'coach' ? 'flex' : 'none';
-    document.getElementById('analyst-panel').style.display = currentMode === 'analyst' ? 'flex' : 'none';
+    for (const [mode, id] of Object.entries(MODE_PANELS)) {
+      document.getElementById(id).style.display = currentMode === mode ? 'flex' : 'none';
+    }
+    if (currentMode === 'inject') initInject();
   });
 });
 
@@ -559,6 +562,248 @@ document.getElementById('chatInput').addEventListener('keydown', e => {
     document.getElementById('chatSendBtn').click();
   }
 });
+
+// ══════════════════════════════════════════════════════════════════
+// INJECT MODE — ported from popup.js. Talks to the existing service
+// worker via the same message protocol (LIST_SCENARIOS / GET_STATE /
+// SET_STATE / IMPORT/EXPORT/DELETE_SCENARIO). The interceptor and
+// service worker are unchanged; this is just the relocated cockpit.
+// ══════════════════════════════════════════════════════════════════
+let injectInited = false;
+let injectScenarios = []; // { id, name, description, isCustom }
+
+const injSel        = () => document.getElementById('scenario');
+const injToggle     = () => document.getElementById('toggle');
+const injCustomer   = () => document.getElementById('customerName');
+const injEndpoints  = () => document.getElementById('endpointCount');
+const injServers    = () => document.getElementById('serverCount');
+const injBadge      = () => document.getElementById('showBadge');
+const injDesc       = () => document.getElementById('scenarioDesc');
+const injStatusDot  = () => document.getElementById('statusDot');
+const injStatusText = () => document.getElementById('statusText');
+const injIntercepted= () => document.getElementById('interceptedText');
+const injDeleteBtn  = () => document.getElementById('deleteBtn');
+
+function injToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = `toast ${type}`;
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+function injLoadScenarios() {
+  return new Promise(resolve => {
+    chrome.runtime.sendMessage({ type: 'LIST_SCENARIOS' }, resp => {
+      if (chrome.runtime.lastError) { resolve(); return; }
+      injectScenarios = [...(resp?.builtIn || []), ...(resp?.custom || [])];
+      const sel = injSel();
+      sel.innerHTML = '';
+      if (resp?.builtIn?.length) {
+        const g = document.createElement('optgroup');
+        g.label = 'Built-in Scenarios';
+        for (const s of resp.builtIn) {
+          const o = document.createElement('option');
+          o.value = s.id; o.textContent = s.name; g.appendChild(o);
+        }
+        sel.appendChild(g);
+      }
+      if (resp?.custom?.length) {
+        const g = document.createElement('optgroup');
+        g.label = 'Custom Scenarios';
+        for (const s of resp.custom) {
+          const o = document.createElement('option');
+          o.value = s.id; o.textContent = s.name; g.appendChild(o);
+        }
+        sel.appendChild(g);
+      }
+      resolve();
+    });
+  });
+}
+
+function injUpdateUI(state) {
+  if (state?.enabled) {
+    injStatusDot().className = 'status-dot active';
+    injStatusText().textContent = 'Active';
+  } else {
+    injStatusDot().className = 'status-dot inactive';
+    injStatusText().textContent = 'Inactive';
+  }
+  injIntercepted().textContent = state?.interceptedCount ? `${state.interceptedCount} intercepted` : '';
+  injUpdateDesc();
+  const selected = injectScenarios.find(s => s.id === injSel().value);
+  injDeleteBtn().style.display = selected?.isCustom ? 'inline-flex' : 'none';
+}
+
+function injUpdateDesc() {
+  const selected = injectScenarios.find(s => s.id === injSel().value);
+  injDesc().textContent = selected?.description || '';
+}
+
+function injSaveState(extra = {}) {
+  const state = {
+    enabled: injToggle().checked,
+    scenario: injSel().value,
+    customerName: injCustomer().value,
+    endpointCount: parseInt(injEndpoints().value) || 2500,
+    serverCount: parseInt(injServers().value) || 186,
+    showBadge: injBadge().checked,
+    launchMode: 'direct',
+    interceptedCount: 0,
+    ...extra,
+  };
+  chrome.runtime.sendMessage({ type: 'SET_STATE', state }, () => injUpdateUI(state));
+}
+
+function injOpenCentral(preludeEnabled = false) {
+  injSaveState({ launchMode: preludeEnabled ? 'prelude' : 'direct' });
+  setTimeout(() => {
+    if (preludeEnabled) {
+      chrome.tabs.create({ url: chrome.runtime.getURL(`prelude/stage.html?scenario=${encodeURIComponent(injSel().value)}&mode=prelude`) });
+      return;
+    }
+    chrome.tabs.query({ url: 'https://central.sophos.com/*' }, tabs => {
+      if (!tabs.length) chrome.tabs.create({ url: 'https://central.sophos.com/manage/dashboard' });
+      else tabs.forEach(t => chrome.tabs.reload(t.id));
+    });
+  }, 200);
+}
+
+function injDebounce(fn, ms) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+}
+
+function initInject() {
+  if (injectInited) return;
+  injectInited = true;
+
+  injLoadScenarios().then(() => {
+    chrome.runtime.sendMessage({ type: 'GET_STATE' }, state => {
+      if (chrome.runtime.lastError || !state) return;
+      injToggle().checked = !!state.enabled;
+      injSel().value = state.scenario || 'ransomware';
+      injCustomer().value = state.customerName || 'Contoso Healthcare';
+      injEndpoints().value = state.endpointCount || 2500;
+      injServers().value = state.serverCount || 186;
+      injBadge().checked = state.showBadge !== false;
+      injUpdateUI(state);
+    });
+  });
+
+  // Wire controls
+  injToggle().addEventListener('change', () => injSaveState());
+  injBadge().addEventListener('change', () => injSaveState());
+  injSel().addEventListener('change', () => {
+    const selected = injectScenarios.find(s => s.id === injSel().value);
+    if (selected?.isCustom) {
+      chrome.runtime.sendMessage({ type: 'EXPORT_SCENARIO', id: injSel().value }, resp => {
+        const c = resp?.scenario?.customer;
+        if (c) {
+          if (c.name) injCustomer().value = c.name;
+          if (c.endpointCount) injEndpoints().value = c.endpointCount;
+          if (c.serverCount) injServers().value = c.serverCount;
+        }
+        injSaveState();
+      });
+    } else {
+      injSaveState();
+    }
+    injUpdateDesc();
+  });
+  injCustomer().addEventListener('input', injDebounce(() => injSaveState(), 500));
+  injEndpoints().addEventListener('input', injDebounce(() => injSaveState(), 500));
+  injServers().addEventListener('input', injDebounce(() => injSaveState(), 500));
+
+  document.getElementById('launchPreludeBtn').addEventListener('click', () => injOpenCentral(true));
+  document.getElementById('launchDirectBtn').addEventListener('click', () => injOpenCentral(false));
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    injSaveState({ launchMode: 'preview' });
+    chrome.tabs.create({ url: chrome.runtime.getURL(`prelude/stage.html?scenario=${encodeURIComponent(injSel().value)}&mode=preview`) });
+  });
+
+  // Import / export / delete
+  document.getElementById('importBtn').addEventListener('click', () => {
+    const area = document.getElementById('importArea');
+    area.style.display = area.style.display === 'none' ? 'flex' : 'none';
+    document.getElementById('importJson').value = '';
+  });
+  document.getElementById('cancelImport').addEventListener('click', () => {
+    document.getElementById('importArea').style.display = 'none';
+  });
+  document.getElementById('confirmImport').addEventListener('click', () => {
+    let scenario;
+    try { scenario = JSON.parse(document.getElementById('importJson').value); }
+    catch (e) { injToast('Invalid JSON: ' + e.message, 'error'); return; }
+    injImport(scenario);
+  });
+  document.getElementById('fileBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      let scenario;
+      try { scenario = JSON.parse(ev.target.result); }
+      catch (err) { injToast('Invalid JSON file: ' + err.message, 'error'); return; }
+      if (!scenario.name) scenario.name = file.name.replace('.json', '');
+      injImport(scenario);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'EXPORT_SCENARIO', id: injSel().value }, resp => {
+      if (!resp?.scenario) { injToast('No scenario data to export', 'error'); return; }
+      const blob = new Blob([JSON.stringify(resp.scenario, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${injSel().value}.json`; a.click();
+      URL.revokeObjectURL(url);
+      injToast('Exported: ' + (resp.scenario.name || injSel().value));
+    });
+  });
+  injDeleteBtn().addEventListener('click', () => {
+    const id = injSel().value;
+    const selected = injectScenarios.find(s => s.id === id);
+    if (!selected?.isCustom) return;
+    if (!confirm(`Delete "${selected.name}"?`)) return;
+    chrome.runtime.sendMessage({ type: 'DELETE_SCENARIO', id }, resp => {
+      if (resp?.ok) { injToast(`Deleted: ${selected.name}`); injLoadScenarios().then(() => { injSel().value = 'ransomware'; injSaveState(); }); }
+    });
+  });
+
+  // Live intercept count
+  setInterval(() => {
+    if (currentMode !== 'inject' || !chrome.runtime?.id) return;
+    chrome.runtime.sendMessage({ type: 'GET_STATE' }, state => {
+      if (chrome.runtime.lastError || !state) return;
+      injIntercepted().textContent = state.interceptedCount ? `${state.interceptedCount} intercepted` : '';
+    });
+  }, 3000);
+}
+
+function injImport(scenario) {
+  if (!scenario.id) scenario.id = 'custom-' + Date.now();
+  if (!scenario.name) scenario.name = 'Custom Scenario';
+  chrome.runtime.sendMessage({ type: 'IMPORT_SCENARIO', scenario }, async resp => {
+    if (resp?.ok) {
+      injToast(`Imported: ${scenario.name}`);
+      document.getElementById('importArea').style.display = 'none';
+      await injLoadScenarios();
+      injSel().value = scenario.id;
+      if (scenario.customer) {
+        if (scenario.customer.name) injCustomer().value = scenario.customer.name;
+        if (scenario.customer.endpointCount) injEndpoints().value = scenario.customer.endpointCount;
+        if (scenario.customer.serverCount) injServers().value = scenario.customer.serverCount;
+      }
+      injSaveState();
+    } else {
+      injToast(resp?.error || 'Import failed', 'error');
+    }
+  });
+}
 
 // ── Helpers ──
 function card(label, innerHtml) {

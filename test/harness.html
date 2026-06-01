@@ -18,16 +18,38 @@
       entities: ["DESKTOP-A1B2C3", "jsmith@contoso.com", "SRV-DC01"],
       rawTextSummary: "Central page view."
     };
+    // Fake service-worker responses so the Inject tab populates in the harness.
+    const FAKE_SCENARIOS = {
+      builtIn: [
+        { id: "ransomware", name: "Akira Ransomware", description: "CryptoGuard blocks Akira encryption; full attack chain with MITRE mapping." },
+        { id: "mdr", name: "MDR Overnight Response", description: "MDR team detects and isolates a 2am ransomware attempt in 8 minutes." },
+        { id: "xdr", name: "Multi-Stage Intrusion (XDR)", description: "Browser exploit → lateral movement → data staging across the estate." },
+        { id: "healthy", name: "Healthy Environment", description: "Clean estate, health score 98, all endpoints green." },
+      ],
+      custom: [],
+    };
+    const FAKE_STATE = { enabled: false, scenario: "ransomware", customerName: "Contoso Healthcare", endpointCount: 2500, serverCount: 186, showBadge: true, interceptedCount: 0 };
     window.chrome = {
       tabs: {
         query: async () => [{ id: 1, windowId: 1, url: FAKE_SNAPSHOT.url }],
         onActivated: { addListener: () => {} },
         onUpdated: { addListener: () => {} },
+        create: () => {}, reload: () => {},
       },
       scripting: {
         executeScript: async () => [{ result: FAKE_SNAPSHOT }],
       },
-      runtime: { onMessage: { addListener: () => {} }, sendMessage: () => {} },
+      runtime: {
+        id: "harness",
+        getURL: p => p,
+        onMessage: { addListener: () => {} },
+        sendMessage: (msg, cb) => {
+          if (typeof cb !== "function") return;
+          if (msg.type === "LIST_SCENARIOS") cb(FAKE_SCENARIOS);
+          else if (msg.type === "GET_STATE") cb(FAKE_STATE);
+          else cb({ ok: true });
+        },
+      },
       storage: { local: { get: async () => ({}), set: async () => {} } },
     };
   </script>
@@ -62,6 +84,9 @@
         sel.value = pick;
         sel.dispatchEvent(new Event("change"));
       }
+      // ?mode= clicks a top-level mode tab (coach|inject|analyst)
+      const mode = qp.get("mode");
+      if (mode) document.querySelector(`.mode-tab[data-mode="${mode}"]`)?.click();
       // ?tab= clicks a coach tab after load (talk|discovery|objections|compete)
       const tab = qp.get("tab");
       if (tab) document.querySelector(`.coach-tab[data-tab="${tab}"]`)?.click();
