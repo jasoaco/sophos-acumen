@@ -1,0 +1,354 @@
+{
+  "id": "phishing-default",
+  "name": "Phishing Campaign",
+  "description": "Targeted phishing campaign: 47 emails blocked, 12 quarantined. Credential harvesting URLs detected. Sophos Email + Endpoint working together.",
+  "version": 1,
+  "createdAt": "2026-03-23T00:00:00Z",
+  "customer": {
+    "name": "Contoso Healthcare",
+    "industry": "healthcare",
+    "endpointCount": 2500,
+    "serverCount": 186
+  },
+  "alerts": {
+    "mode": "prepend",
+    "items": [
+      {
+        "product": "xgemail",
+        "threat": "Phishing URL",
+        "threat_cleanable": false,
+        "created_at": "-8m",
+        "severity": "high",
+        "actionable": true,
+        "category": "malware",
+        "when": "-8m",
+        "allowedActions": ["ACKNOWLEDGE"],
+        "location": "SMTP Gateway",
+        "type": "Event::Email::PhishingDetected",
+        "source": null,
+        "data": { "created_at": "-8m", "endpoint_type": "email" },
+        "description": "Targeted phishing campaign detected: 47 emails blocked containing credential harvesting links. Subject: \"Action Required: Verify Your Account\"",
+        "info": "Sophos Email blocked bulk phishing attempt"
+      },
+      {
+        "product": "xgemail",
+        "threat": "Malicious URL",
+        "threat_cleanable": false,
+        "created_at": "-6m",
+        "severity": "high",
+        "actionable": true,
+        "category": "malware",
+        "when": "-6m",
+        "allowedActions": ["ACKNOWLEDGE"],
+        "location": "SMTP Gateway",
+        "type": "Event::Email::MaliciousUrlClicked",
+        "source": null,
+        "data": { "created_at": "-6m", "endpoint_type": "email" },
+        "description": "User sarah.chen@{{customerDomain}} clicked phishing link — blocked by Sophos Web Protection at endpoint level",
+        "info": "Post-delivery click blocked by endpoint web filtering"
+      },
+      {
+        "product": "xgemail",
+        "threat": null,
+        "threat_cleanable": null,
+        "created_at": "-5m",
+        "severity": "medium",
+        "actionable": false,
+        "category": "policy",
+        "when": "-5m",
+        "allowedActions": ["ACKNOWLEDGE"],
+        "location": "SMTP Gateway",
+        "type": "Event::Email::Quarantined",
+        "source": null,
+        "data": { "created_at": "-5m", "endpoint_type": "email" },
+        "description": "12 additional suspicious emails quarantined from same sender domain \"secure-login-verify[.]com\"",
+        "info": null
+      }
+    ],
+    "summaryDelta": { "high": 2, "medium": 1, "low": 0 }
+  },
+  "cases": {
+    "mode": "prepend",
+    "items": [
+      {
+        "type": "investigation",
+        "name": "Targeted Phishing Campaign — {{customerName}}",
+        "managedBy": "self",
+        "createdAt": "-8m",
+        "createdBy": { "name": "Auto-generated" },
+        "updatedAt": "-5m",
+        "status": "investigating",
+        "initialDetection": {
+          "severity": 7,
+          "type": "Threat",
+          "detectionRule": "EMAIL-PHISH-CREDENTIAL-HARVEST-1",
+          "mitreAttacks": [
+            { "tactic": { "id": "TA0001", "name": "Initial Access", "techniques": [{ "id": "T1566.002", "name": "Spearphishing Link" }] } },
+            { "tactic": { "id": "TA0006", "name": "Credential Access", "techniques": [{ "id": "T1556", "name": "Modify Authentication Process" }] } }
+          ],
+          "time": "-8m",
+          "sensor": { "type": "email", "source": "Sophos Email" }
+        },
+        "assignee": { "name": "SOC Analyst" },
+        "overview": "Targeted phishing campaign detected: 47 credential harvesting emails from secure-login-verify[.]com. 47 blocked at gateway, 12 quarantined post-delivery, 1 user click blocked by endpoint web protection. No credentials compromised.",
+        "detectionCount": 3,
+        "escalated": false
+      }
+    ]
+  },
+  "detections": {
+    "mode": "prepend",
+    "items": [
+      {
+        "detectionCreatedAt": "-8m",
+        "connectorGeneratedAt": "-8m",
+        "connector": { "id": "SophosEmailSensor", "type": "email", "vendor": "Sophos", "version": "Email Gateway 3.8" },
+        "device": { "type": "email_gateway", "hostname": "SMTP-GW01" },
+        "rawData": {
+          "meta_hostname": "SMTP-GW01",
+          "meta_ip_address": "10.0.1.5",
+          "sender": "no-reply@secure-login-verify.com",
+          "recipient_count": "47",
+          "subject": "Action Required: Verify Your Account Immediately",
+          "urls_detected": "https://secure-login-verify.com/portal/login.php"
+        },
+        "risk": 7,
+        "category": "Threat",
+        "classificationRule": "EMAIL-PHISH-CREDENTIAL-HARVEST-1",
+        "ruleDescription": "Bulk credential harvesting phishing campaign detected — 47 emails with malicious URLs from same sender domain",
+        "mitreAttacks": [
+          { "tactic": { "id": "TA0001", "name": "Initial Access", "techniques": [{ "id": "T1566.002", "name": "Spearphishing Link" }] } }
+        ],
+        "attackType": "Phishing",
+        "severity": 7,
+        "detectionAttack": { "name": "Credential Harvesting Campaign" },
+        "detectionLicenses": ["Email"],
+        "geolocation": {},
+        "intelixFileReputation": {},
+        "detectionType": "Threat",
+        "suppressed": false,
+        "caseDescription": "Bulk phishing campaign blocked"
+      },
+      {
+        "detectionCreatedAt": "-6m",
+        "connectorGeneratedAt": "-6m",
+        "connector": { "id": "SophosSensorID", "type": "endpoint", "vendor": "Sophos", "version": "SED Driver 4.2.1" },
+        "device": { "type": "computer", "hostname": "DESKTOP-HR007" },
+        "rawData": {
+          "meta_hostname": "DESKTOP-HR007",
+          "meta_ip_address": "192.168.1.107",
+          "meta_os_name": "Microsoft Windows 11 Enterprise",
+          "meta_username": "sarah.chen",
+          "cmdline": "msedge.exe --navigate https://secure-login-verify.com/portal/login.php?uid=sarah.chen",
+          "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+          "parent_name": "outlook.exe"
+        },
+        "risk": 5,
+        "category": "Threat",
+        "classificationRule": "WEB-PHISH-URL-BLOCK-1",
+        "ruleDescription": "User clicked phishing URL in email — blocked by Sophos Web Protection at endpoint",
+        "mitreAttacks": [
+          { "tactic": { "id": "TA0001", "name": "Initial Access", "techniques": [{ "id": "T1566.002", "name": "Spearphishing Link" }] } }
+        ],
+        "attackType": "Phishing",
+        "severity": 5,
+        "detectionAttack": { "name": "Credential Harvesting Campaign" },
+        "detectionLicenses": ["XDR"],
+        "geolocation": {},
+        "intelixFileReputation": {},
+        "detectionType": "Threat",
+        "suppressed": false,
+        "caseDescription": "Phishing URL click blocked at endpoint"
+      }
+    ]
+  },
+  "billing": {
+    "overrideName": "{{customerName}}",
+    "overrideAlias": "{{customerName}}"
+  },
+  "user": {
+    "overrideCompany": "{{customerName}}",
+    "overrideAlias": "{{customerName}}"
+  },
+  "healthScore": {
+    "override": 89
+  },
+  "auditLogs": {
+    "mode": "prepend",
+    "items": [
+      {
+        "timestamp": "-5m",
+        "type": "system_event",
+        "category": "email",
+        "action": "Bulk phishing campaign blocked",
+        "actor": "Sophos Email",
+        "actorType": "system",
+        "target": "SMTP Gateway",
+        "targetType": "service",
+        "result": "success",
+        "description": "47 inbound emails blocked from sender domain secure-login-verify[.]com. Reason: malicious URL detected (credential harvesting). Subject pattern: 'Action Required: Verify Your Account'."
+      },
+      {
+        "timestamp": "-4m",
+        "type": "system_event",
+        "category": "email",
+        "action": "Post-delivery remediation",
+        "actor": "Sophos Email",
+        "actorType": "system",
+        "target": "12 messages",
+        "targetType": "email",
+        "result": "success",
+        "description": "12 emails quarantined post-delivery via clawback. Messages had already been delivered to user inboxes before URL was reclassified as malicious."
+      },
+      {
+        "timestamp": "-3m",
+        "type": "system_event",
+        "category": "endpoint",
+        "action": "Malicious URL blocked at endpoint",
+        "actor": "Sophos Web Protection",
+        "actorType": "system",
+        "target": "DESKTOP-HR007",
+        "targetType": "endpoint",
+        "result": "blocked",
+        "description": "User sarah.chen clicked phishing link in delivered email. Sophos Web Protection on DESKTOP-HR007 blocked navigation to https://secure-login-verify[.]com/portal/login.php. No credentials exposed."
+      }
+    ]
+  },
+  "emailHistory": {
+    "messages": {
+      "items": [
+        {
+          "timestamp": "-8m",
+          "direction": "INBOUND",
+          "from": "no-reply@secure-login-verify.com",
+          "to": "sarah.chen@{{customerDomain}}",
+          "subject": "Action Required: Verify Your Account Immediately",
+          "status": "BLOCKED",
+          "reason": "MALICIOUS_URL",
+          "size": 45230,
+          "attachments": 0,
+          "urls": ["https://secure-login-verify.com/portal/login.php?uid=sarah.chen"],
+          "scanResults": { "spamScore": 92, "phishingScore": 99, "malwareDetected": false, "sandboxResult": "MALICIOUS" }
+        },
+        {
+          "timestamp": "-8m",
+          "direction": "INBOUND",
+          "from": "no-reply@secure-login-verify.com",
+          "to": "mike.jones@{{customerDomain}}",
+          "subject": "Action Required: Verify Your Account Immediately",
+          "status": "BLOCKED",
+          "reason": "MALICIOUS_URL",
+          "size": 45180,
+          "attachments": 0,
+          "urls": ["https://secure-login-verify.com/portal/login.php?uid=mike.jones"],
+          "scanResults": { "spamScore": 92, "phishingScore": 99, "malwareDetected": false, "sandboxResult": "MALICIOUS" }
+        },
+        {
+          "timestamp": "-8m",
+          "direction": "INBOUND",
+          "from": "no-reply@secure-login-verify.com",
+          "to": "lisa.park@{{customerDomain}}",
+          "subject": "Urgent: Account Verification Required",
+          "status": "QUARANTINED",
+          "reason": "SUSPICIOUS_URL",
+          "size": 44890,
+          "attachments": 0,
+          "urls": ["https://secure-login-verify.com/portal/verify.php?uid=lisa.park"],
+          "scanResults": { "spamScore": 88, "phishingScore": 95, "malwareDetected": false, "sandboxResult": "SUSPICIOUS" }
+        },
+        {
+          "timestamp": "-7m",
+          "direction": "INBOUND",
+          "from": "support@secure-login-verify.com",
+          "to": "david.kim@{{customerDomain}}",
+          "subject": "Your Account Has Been Locked — Verify Now",
+          "status": "QUARANTINED",
+          "reason": "IMPERSONATION",
+          "size": 52100,
+          "attachments": 1,
+          "urls": ["https://secure-login-verify.com/unlock.php"],
+          "scanResults": { "spamScore": 90, "phishingScore": 97, "malwareDetected": false, "sandboxResult": "MALICIOUS" }
+        },
+        {
+          "timestamp": "-6m",
+          "direction": "INBOUND",
+          "from": "no-reply@secure-login-verify.com",
+          "to": "emma.wilson@{{customerDomain}}",
+          "subject": "Action Required: Verify Your Account Immediately",
+          "status": "DELIVERED",
+          "reason": null,
+          "size": 44500,
+          "attachments": 0,
+          "urls": ["https://secure-login-verify.com/portal/login.php?uid=emma.wilson"],
+          "scanResults": { "spamScore": 65, "phishingScore": 72, "malwareDetected": false, "sandboxResult": "CLEAN" },
+          "postDeliveryAction": "QUARANTINED",
+          "postDeliveryReason": "URL reclassified as malicious after SophosLabs analysis"
+        }
+      ],
+      "total": 47,
+      "filtered": 47,
+      "pages": { "current": 1, "size": 20, "total": 3, "items": 47 }
+    },
+    "quarantine": {
+      "items": [
+        {
+          "timestamp": "-5m",
+          "from": "no-reply@secure-login-verify.com",
+          "to": "lisa.park@{{customerDomain}}",
+          "subject": "Urgent: Account Verification Required",
+          "reason": "SUSPICIOUS_URL",
+          "status": "quarantined",
+          "canRelease": true
+        },
+        {
+          "timestamp": "-5m",
+          "from": "support@secure-login-verify.com",
+          "to": "david.kim@{{customerDomain}}",
+          "subject": "Your Account Has Been Locked — Verify Now",
+          "reason": "IMPERSONATION",
+          "status": "quarantined",
+          "canRelease": false
+        },
+        {
+          "timestamp": "-4m",
+          "from": "no-reply@secure-login-verify.com",
+          "to": "emma.wilson@{{customerDomain}}",
+          "subject": "Action Required: Verify Your Account Immediately",
+          "reason": "POST_DELIVERY_CLAWBACK",
+          "status": "quarantined",
+          "canRelease": false
+        }
+      ],
+      "total": 12,
+      "filtered": 12
+    }
+  },
+  "endpointReport": {
+    "overrideTotal": "{{endpointCount}}",
+    "overrideSummary": {
+      "total": "{{endpointCount}}",
+      "active": "{{endpointCount * 0.88}}",
+      "unprotected": 0,
+      "inactive": "{{endpointCount * 0.04}}",
+      "dormant": "{{endpointCount * 0.08}}"
+    }
+  },
+  "emailStats": {
+    "override": [
+      { "name": "POTENTIAL_THREATS", "value": 47 },
+      { "name": "INBOUND_MAILS_SCANNED", "value": 1284 },
+      { "name": "RBL_REJECT", "value": 312 },
+      { "name": "ENTERPRISE_BLOCKED", "value": 2 },
+      { "name": "VIRUS", "value": 3 },
+      { "name": "UNSCANNABLE", "value": 1 },
+      { "name": "INTELIX_THREAT", "value": 8 },
+      { "name": "MALICIOUS_URL", "value": 47 },
+      { "name": "IMPERSONATION", "value": 5 },
+      { "name": "SPAM", "value": 89 },
+      { "name": "BULK", "value": 567 },
+      { "name": "AUTH_FAILURE", "value": 23 },
+      { "name": "DLP_VIOLATION", "value": 0 },
+      { "name": "LEGITIMATE", "value": 784 }
+    ]
+  }
+}

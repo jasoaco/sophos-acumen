@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sophos Central Coach</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #08111d;
+      --surface: rgba(255,255,255,0.06);
+      --surface2: rgba(255,255,255,0.09);
+      --border: rgba(255,255,255,0.08);
+      --accent: #00A8E0;
+      --sophos-red: #e2231a;
+      --text: #f5fbff;
+      --muted: rgba(245,251,255,0.65);
+      --emerald: #34d399;
+      --amber: #fbbf24;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .brand-icon { width: 28px; height: 28px; flex-shrink: 0; }
+    .brand-copy { flex: 1; min-width: 0; }
+    .brand-copy h1 { font-size: 14px; font-weight: 900; letter-spacing: -0.01em; }
+    .brand-copy p { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+    /* ── Mode tabs ── */
+    .mode-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .mode-tab:hover { color: var(--text); }
+    .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Scrollable body ── */
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ══════════════════════════════
+       COACH MODE
+    ══════════════════════════════ */
+    #coach-panel { display: flex; flex-direction: column; height: 100%; }
+
+    .coach-header {
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .coach-product-name {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--text);
+    }
+    .coach-product-sub {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .coach-banner {
+      margin-top: 8px;
+      padding: 7px 10px;
+      background: rgba(0,168,224,0.10);
+      border: 1px solid rgba(0,168,224,0.22);
+      border-radius: 7px;
+      font-size: 11px;
+      color: #9be0f8;
+      line-height: 1.45;
+    }
+
+    .coach-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: rgba(0,168,224,0.04);
+    }
+    .picker-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .coach-picker select {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 8px;
+      cursor: pointer;
+    }
+
+    .coach-controls {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .coach-controls select {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+
+    .coach-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .coach-tab {
+      flex: 1;
+      padding: 7px 4px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .coach-tab:hover { color: var(--text); }
+    .coach-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    #coach-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+    }
+    #coach-content::-webkit-scrollbar { width: 4px; }
+    #coach-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .coach-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 180px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      gap: 8px;
+    }
+    .coach-empty strong { color: var(--text); font-size: 13px; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .card-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .card p { font-size: 12px; line-height: 1.55; color: #cbd5e1; margin-bottom: 6px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* Talk track */
+    .talk-quote {
+      font-size: 12px;
+      font-style: italic;
+      line-height: 1.65;
+      color: #e2e8f0;
+      border-left: 2px solid var(--accent);
+      padding-left: 10px;
+      margin-bottom: 8px;
+    }
+    .points-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .points-list li {
+      font-size: 11px;
+      color: var(--muted);
+      padding-left: 14px;
+      position: relative;
+      line-height: 1.45;
+    }
+    .points-list li::before { content: "›"; position: absolute; left: 0; color: var(--accent); font-weight: 900; }
+
+    .action-block {
+      background: rgba(251,191,36,0.06);
+      border: 1px solid rgba(251,191,36,0.18);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--amber);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .action-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.7; margin-bottom: 3px; }
+
+    /* Discovery */
+    .q-item { display: flex; gap: 8px; margin-bottom: 7px; align-items: flex-start; }
+    .q-num {
+      font-size: 9px; font-weight: 900; color: var(--accent);
+      background: rgba(0,168,224,0.12); border-radius: 4px;
+      padding: 2px 5px; flex-shrink: 0; margin-top: 1px;
+    }
+    .q-text { font-size: 12px; line-height: 1.5; color: #cbd5e1; }
+
+    /* Objections */
+    .obj-item { margin-bottom: 10px; }
+    .obj-q { font-size: 11px; font-weight: 700; color: #fca5a5; margin-bottom: 4px; }
+    .obj-a {
+      font-size: 12px; line-height: 1.55; color: #cbd5e1;
+      padding-left: 10px; border-left: 2px solid rgba(252,165,165,0.28);
+    }
+
+    /* Compete */
+    .comp-item { margin-bottom: 10px; }
+    .comp-name { font-size: 11px; font-weight: 900; color: var(--emerald); margin-bottom: 5px; }
+    .comp-points { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .comp-points li {
+      font-size: 11px; color: #cbd5e1; padding-left: 14px;
+      position: relative; line-height: 1.4;
+    }
+    .comp-points li::before { content: "✓"; position: absolute; left: 0; color: var(--emerald); font-size: 9px; top: 2px; }
+
+    /* Tags */
+    .tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .tag {
+      font-size: 9px; font-weight: 800; padding: 3px 7px;
+      border-radius: 999px; background: rgba(0,168,224,0.12);
+      color: #9be0f8; border: 1px solid rgba(0,168,224,0.18);
+    }
+
+    /* ══════════════════════════════
+       ANALYST MODE (Watchman)
+    ══════════════════════════════ */
+    #analyst-panel { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+
+    .panel {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .label { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 800; margin-bottom: 8px; }
+    .headline { font-size: 14px; font-weight: 800; line-height: 1.35; margin-bottom: 8px; }
+    .meta { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    .actions-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    button.primary {
+      padding: 9px 14px; border: 0; border-radius: 9px;
+      background: var(--accent); color: white; font-weight: 700;
+      font-size: 12px; cursor: pointer;
+    }
+    button.ghost {
+      padding: 9px 14px; border-radius: 9px; font-size: 12px; font-weight: 700; cursor: pointer;
+      background: rgba(255,255,255,0.08); color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .status-inline { font-size: 11px; color: #d8f6ff; margin-top: 6px; }
+
+    ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+    li { color: var(--muted); line-height: 1.45; font-size: 12px; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { padding: 5px 9px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #c5f0ff; font-size: 11px; }
+
+    .event-card {
+      padding: 10px 12px; border-radius: 11px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 8px;
+    }
+    .event-card.high, .event-card.critical { border-color: rgba(255,77,90,0.22); background: rgba(255,77,90,0.06); }
+    .event-card.medium { border-color: rgba(255,184,77,0.18); background: rgba(255,184,77,0.05); }
+    .event-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .event-card-copy { font-size: 12px; line-height: 1.5; color: var(--muted); margin-bottom: 4px; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .badge { display: inline-flex; align-items: center; padding: 4px 7px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+    .badge.severity-critical, .badge.severity-high { background: rgba(255,77,90,0.16); color: #ffc8cf; }
+    .badge.severity-medium { background: rgba(255,184,77,0.16); color: #ffe2b8; }
+    .badge.severity-low { background: rgba(0,168,224,0.16); color: #c8f1ff; }
+    .badge.meta { background: rgba(255,255,255,0.08); color: #d4eef9; }
+    .event-next { font-size: 11px; color: #dff6ff; }
+    .footer-note { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+    .chat-log { display: grid; gap: 7px; max-height: 200px; overflow: auto; }
+    .chat-msg { padding: 9px 11px; border-radius: 10px; font-size: 12px; line-height: 1.45; }
+    .chat-msg.user { background: rgba(0,168,224,0.14); color: #d3f5ff; }
+    .chat-msg.assistant { background: rgba(255,255,255,0.06); color: var(--text); }
+    textarea {
+      width: 100%; resize: vertical; border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.06); color: var(--text);
+      padding: 10px; font: inherit; font-size: 12px;
+    }
+    pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: #bfefff; font-size: 11px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <img class="brand-icon" src="icons/watchman-icon.svg" alt="" />
+    <div class="brand-copy">
+      <h1>Sophos Acumen</h1>
+      <p id="top-subtitle">Navigate to a product page to begin</p>
+    </div>
+  </div>
+
+  <!-- Mode toggle -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="coach">Coach</button>
+    <button class="mode-tab" data-mode="analyst">Analyst</button>
+  </div>
+
+  <!-- Panel body -->
+  <div class="panel-body">
+
+    <!-- ── COACH MODE ── -->
+    <div id="coach-panel">
+
+      <!-- Product picker (always visible — manual override of auto-detection) -->
+      <div class="coach-picker">
+        <span class="picker-label">Product</span>
+        <select id="product-select" title="Pick a product or auto-detect from the page">
+          <option value="">🔄 Auto-detect</option>
+        </select>
+      </div>
+
+      <!-- Product header (hidden until a product is detected) -->
+      <div id="coach-header" class="coach-header" style="display:none">
+        <div class="coach-product-name" id="coach-product-name"></div>
+        <div class="coach-product-sub" id="coach-product-sub"></div>
+        <div class="tag-row" id="coach-tags"></div>
+        <div class="coach-banner" id="coach-banner" style="display:none"></div>
+      </div>
+
+      <!-- Controls: screen selector + audience -->
+      <div id="coach-controls" class="coach-controls" style="display:none">
+        <select id="screen-select" title="Screen"></select>
+        <select id="audience-select" title="Audience">
+          <option value="IT Manager">IT Manager</option>
+          <option value="Security Engineer">Security Engineer</option>
+          <option value="CTO / CISO">CTO / CISO</option>
+          <option value="MSP / Partner SE">MSP / Partner SE</option>
+        </select>
+      </div>
+
+      <!-- Content tabs -->
+      <div id="coach-tabs" class="coach-tabs" style="display:none">
+        <button class="coach-tab active" data-tab="talk">Talk Track</button>
+        <button class="coach-tab" data-tab="discovery">Discovery</button>
+        <button class="coach-tab" data-tab="objections">Objections</button>
+        <button class="coach-tab" data-tab="compete">Compete</button>
+      </div>
+
+      <!-- Coach content -->
+      <div id="coach-content">
+        <div class="coach-empty">
+          <strong>Navigate Sophos Central to begin</strong>
+          Open any product page and the coach will automatically surface talk tracks, discovery questions, objections, and competitive intel.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── ANALYST MODE ── -->
+    <div id="analyst-panel" style="display:none">
+
+      <div class="actions-row">
+        <button class="primary" id="analyzeBtn">Analyze Page</button>
+        <button class="ghost" id="toggleRawBtn">Raw</button>
+      </div>
+      <div id="buttonStatus" class="status-inline">Ready.</div>
+
+      <div class="panel">
+        <div class="label">Current page</div>
+        <div id="summaryHeadline" class="headline">Waiting for analysis...</div>
+        <div id="summaryCopy" class="meta">Run analysis to interpret the current interface.</div>
+        <div id="summaryMeta" class="footer-note"></div>
+      </div>
+
+      <div class="panel">
+        <div class="label">What stands out</div>
+        <ul id="notableList"><li>No page interpretation yet.</li></ul>
+      </div>
+
+      <div class="panel">
+        <div class="label">Suggested next actions</div>
+        <ul id="actionList"><li>Analyze a page to begin.</li></ul>
+      </div>
+
+      <div class="panel">
+        <div class="label">Visible entities</div>
+        <div id="entityChips" class="chips"><span class="chip">None captured yet</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="label">Visible events</div>
+        <div id="eventCards"></div>
+      </div>
+
+      <div class="panel">
+        <div class="label">Ask Watchman</div>
+        <div class="chips" style="margin-bottom:10px;">
+          <button class="ghost quick-prompt" data-prompt="What matters most on this page?" style="font-size:11px;padding:6px 9px;">What matters most?</button>
+          <button class="ghost quick-prompt" data-prompt="Which event should I investigate first?" style="font-size:11px;padding:6px 9px;">Investigate first</button>
+        </div>
+        <div id="chatLog" class="chat-log">
+          <div class="chat-msg assistant">Ask a question about the current page.</div>
+        </div>
+        <div style="display:grid;gap:8px;margin-top:10px;">
+          <textarea id="chatInput" rows="2" placeholder="Ask about alerts, events, or next steps..."></textarea>
+          <button class="primary" id="chatSendBtn">Ask</button>
+        </div>
+      </div>
+
+      <div class="panel" id="rawPanel" style="display:none">
+        <div class="label">Raw snapshot</div>
+        <pre id="rawOutput">Waiting...</pre>
+      </div>
+
+    </div>
+
+  </div><!-- end panel-body -->
+
+  <script src="data/products.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

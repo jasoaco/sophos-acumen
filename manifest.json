@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "Sophos Acumen",
+  "version": "0.1.0",
+  "description": "The Sophos SE's all-in-one for Central — inject realistic demo scenarios, coach with the field guide, and analyze the live page.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "sidePanel",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://central.sophos.com/*",
+    "https://*.sophos.com/*",
+    "https://*.sophosapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://central.sophos.com/*",
+        "https://*.sophos.com/*"
+      ],
+      "js": ["content/interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://central.sophos.com/*"
+      ],
+      "js": ["content/bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["scenarios/*.json"],
+      "matches": ["https://central.sophos.com/*"]
+    },
+    {
+      "resources": ["prelude/prelude.html", "prelude/prelude.js", "prelude/stage.html", "prelude/stage.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

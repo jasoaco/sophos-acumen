@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coach Harness</title>
+  <script>
+    // ── Mock the chrome.* APIs so sidepanel.js runs outside the extension ──
+    // Simulates an SE sitting on the Endpoint dashboard in Sophos Central.
+    // ?route= overrides the simulated Central path (default: endpoint dashboard)
+    const params = new URLSearchParams(location.search);
+    const route = params.get("route") || "/manage/endpoint-protection/dashboard";
+    const FAKE_SNAPSHOT = {
+      url: "https://central.sophos.com" + route,
+      title: "Sophos Central",
+      route,
+      headings: ["Dashboard", "Device Health"],
+      actions: ["Scan Now", "View Devices", "Create Policy"],
+      entities: ["DESKTOP-A1B2C3", "jsmith@contoso.com", "SRV-DC01"],
+      rawTextSummary: "Central page view."
+    };
+    window.chrome = {
+      tabs: {
+        query: async () => [{ id: 1, windowId: 1, url: FAKE_SNAPSHOT.url }],
+        onActivated: { addListener: () => {} },
+        onUpdated: { addListener: () => {} },
+      },
+      scripting: {
+        executeScript: async () => [{ result: FAKE_SNAPSHOT }],
+      },
+      runtime: { onMessage: { addListener: () => {} }, sendMessage: () => {} },
+      storage: { local: { get: async () => ({}), set: async () => {} } },
+    };
+  </script>
+</head>
+<body>
+  <div id="mount"></div>
+  <script>
+    // Pull the real markup from sidepanel.html (single source of truth),
+    // strip its <script> tags, mount the body, then load the real scripts.
+    (async () => {
+      const html = await (await fetch("../sidepanel.html")).text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      // Move the <style> into our head
+      doc.querySelectorAll("style").forEach(s => document.head.appendChild(s));
+      // Mount body markup minus scripts
+      doc.querySelectorAll("script").forEach(s => s.remove());
+      document.getElementById("mount").innerHTML = doc.body.innerHTML;
+      // Load products.js then sidepanel.js, in order
+      const load = src => new Promise((res, rej) => {
+        const el = document.createElement("script");
+        el.src = src; el.onload = res; el.onerror = rej;
+        document.body.appendChild(el);
+      });
+      await load("../data/products.js");
+      await load("../sidepanel.js");
+      const qp = new URLSearchParams(location.search);
+      await new Promise(r => setTimeout(r, 600));
+      // ?pick= selects a product in the manual picker (simulates the SE overriding detection)
+      const pick = qp.get("pick");
+      if (pick) {
+        const sel = document.getElementById("product-select");
+        sel.value = pick;
+        sel.dispatchEvent(new Event("change"));
+      }
+      // ?tab= clicks a coach tab after load (talk|discovery|objections|compete)
+      const tab = qp.get("tab");
+      if (tab) document.querySelector(`.coach-tab[data-tab="${tab}"]`)?.click();
+    })();
+  </script>
+</body>
+</html>
