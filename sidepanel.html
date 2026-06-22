@@ -418,6 +418,25 @@
       padding: 10px; font: inherit; font-size: 12px;
     }
     pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: #bfefff; font-size: 11px; }
+
+    /* ══════════════════════════════
+       CENTRAL PLATFORM-PAGE GUIDES (CENTRAL_CONTENT blobs)
+       The blobs are light-themed (white cards, dark text) and use the field
+       guide's own CSS vars — scope them here so they don't clobber the dark UI.
+    ══════════════════════════════ */
+    .central-guide {
+      --sophos-blue: #0a5ed7;
+      --sophos-accent: #00A8E0;
+      --sophos-dark: #1a1a2e;
+      --border: #e2e8f0;
+      background: #f8f9fa;
+      color: #1a1a2e;
+      border-radius: 10px;
+      padding: 2px 12px 12px;
+      margin: -2px;
+    }
+    .central-guide * { max-width: 100%; box-sizing: border-box; }
+    .central-guide h1 { font-size: 18px; }
   </style>
 </head>
 <body>
@@ -615,6 +634,7 @@
   </div><!-- end panel-body -->
 
   <script src="data/products.js"></script>
+  <script src="data/central-content.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

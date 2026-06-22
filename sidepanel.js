@@ -70,15 +70,65 @@ const PRODUCT_ROUTE_MAP = [
 
 // Returns { isCentral, product, segment } — segment is the raw /manage slug,
 // surfaced even when unmapped so the empty state can name it.
+let currentCentralPage = null; // active platform-page guide id (CENTRAL_CONTENT), or null
+
+// Map a Central platform URL to a CENTRAL_CONTENT page id (Threat Analysis Center /
+// My Environment / Reports / Dashboards — the pages PRODUCTS doesn't cover). Derives
+// the id from the path and checks it exists, so a wrong guess just returns null.
+// Confirmed: /manage/threat-analysis-center/cases = tac_cases.
+function detectCentralPage(route) {
+  const cc = window.CENTRAL_CONTENT || {};
+  const path = (route || '').toLowerCase();
+  const after = path.replace(/^.*\/manage\//, '');
+  const parts = after.split(/[?#]/)[0].split('/').filter(Boolean);
+  const norm = s => (s || '').replace(/-/g, '_');
+  if (!parts.length) return null;
+
+  if (parts[0] === 'threat-analysis-center' || parts[0] === 'tac') {
+    const id = 'tac_' + norm(parts[1] || 'dashboard');
+    return cc[id] ? id : null;
+  }
+  if (parts[0] === 'environment' || parts[0] === 'my-environment') {
+    const id = 'env_' + norm(parts[1] || '');
+    return cc[id] ? id : null;
+  }
+  if (parts[0] === 'dashboard' || parts[0] === 'dashboards') {
+    return cc['dashboards_central_overview'] ? 'dashboards_central_overview' : null;
+  }
+  if (parts[0] === 'reports' || path.includes('/reports')) {
+    return cc['reports_reports'] ? 'reports_reports' : null;
+  }
+  return null;
+}
+
+// Short display name for a platform page, from CENTRAL_NAV.
+function centralPageTitle(id) {
+  const nav = window.CENTRAL_NAV || {};
+  for (const section of Object.values(nav)) {
+    for (const grp of (section?.sections || [])) {
+      for (const it of (grp?.items || [])) {
+        if (it.id === id) return it.name;
+      }
+    }
+  }
+  return id;
+}
+
 function detectCentral(snapshot) {
   const url = snapshot?.url || '';
   const route = snapshot?.route || '';
   const title = (snapshot?.title || '').toLowerCase();
 
   const isCentral = url.includes('central.sophos.com') || title.includes('sophos central');
-  if (!isCentral) return { isCentral: false, product: null, segment: null };
+  if (!isCentral) return { isCentral: false, product: null, segment: null, centralPage: null };
 
-  // Primary: pull the product slug from /manage/{segment}
+  // Platform pages first (TAC / My Environment / Reports / Dashboards) — more
+  // specific than the product fallback (e.g. /environment/firewalls is the env
+  // guide, not the Firewall product).
+  const centralPage = detectCentralPage(route);
+  if (centralPage) return { isCentral: true, product: null, segment: null, centralPage };
+
+  // Product slug from /manage/{segment}
   const match = route.match(/\/manage\/([^/?#]+)/i);
   const segment = match ? match[1].toLowerCase() : null;
   let product = segment ? (SEGMENT_MAP[segment] || null) : null;
@@ -91,7 +141,7 @@ function detectCentral(snapshot) {
     }
   }
 
-  return { isCentral: true, product, segment };
+  return { isCentral: true, product, segment, centralPage: null };
 }
 
 // ── Snapshot via scripting injection ──
@@ -224,9 +274,17 @@ async function autoDetect() {
 
   const snapshot = await getPageSnapshot();
   if (!snapshot) return;
-  const { isCentral, product, segment } = detectCentral(snapshot);
+  const { isCentral, product, segment, centralPage } = detectCentral(snapshot);
 
-  if (product && product !== currentProduct) {
+  if (centralPage) {
+    // Platform page (TAC / My Environment / Reports / Dashboards) — render its guide
+    currentProduct = null;
+    if (centralPage !== currentCentralPage) {
+      currentCentralPage = centralPage;
+      renderCentralGuide(centralPage);
+    }
+  } else if (product && product !== currentProduct) {
+    currentCentralPage = null;
     currentProduct = product;
     currentScreenIdx = 0;
     renderCoachHeader();
@@ -234,15 +292,18 @@ async function autoDetect() {
   } else if (isCentral && !product) {
     // On Central but this section isn't mapped — name it so it can be added
     currentProduct = null;
+    currentCentralPage = null;
     showUnmappedCentral(segment);
   }
 
   document.getElementById('top-subtitle').textContent =
-    currentProduct && window.PRODUCTS?.[currentProduct]
-      ? window.PRODUCTS[currentProduct].name
-      : isCentral && segment
-        ? `Central · ${segment} (unmapped)`
-        : 'Navigate to a product page to begin';
+    centralPage
+      ? centralPageTitle(centralPage)
+      : currentProduct && window.PRODUCTS?.[currentProduct]
+        ? window.PRODUCTS[currentProduct].name
+        : isCentral && segment
+          ? `Central · ${segment} (unmapped)`
+          : 'Navigate to a product page to begin';
 }
 
 chrome.tabs.onActivated.addListener(autoDetect);
@@ -306,6 +367,20 @@ function showUnmappedCentral(segment) {
       ? `This section — <code style="color:#9be0f8">${segment}</code> — isn't mapped to the field guide yet. Navigate to a product area, or send this slug to add it.`
       : `No product section found in the URL. Open a product area to load coaching content.`) +
     `</div>`;
+}
+
+// Render a platform-page guide (HTML blob from CENTRAL_CONTENT). These pages are
+// informational — no audience / objections / compete — so hide the product chrome
+// and render the guide directly.
+function renderCentralGuide(pageId) {
+  document.getElementById('coach-header').style.display = 'none';
+  document.getElementById('coach-controls').style.display = 'none';
+  document.getElementById('coach-tabs').style.display = 'none';
+  const content = document.getElementById('coach-content');
+  const html = (window.CENTRAL_CONTENT || {})[pageId];
+  content.innerHTML = html
+    ? `<div class="central-guide">${html}</div>`
+    : `<div class="coach-empty">No guide content for <code>${pageId}</code> yet.</div>`;
 }
 
 // ── Coach content ──

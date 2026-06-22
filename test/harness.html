@@ -74,6 +74,7 @@
         document.body.appendChild(el);
       });
       await load("../data/products.js");
+      await load("../data/central-content.js");
       await load("../sidepanel.js");
       const qp = new URLSearchParams(location.search);
       await new Promise(r => setTimeout(r, 600));
