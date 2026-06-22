@@ -437,6 +437,14 @@
     }
     .central-guide * { max-width: 100%; box-sizing: border-box; }
     .central-guide h1 { font-size: 18px; }
+
+    /* Settings tab + panel */
+    .mode-tab-settings { flex: 0 0 auto; padding-left: 12px; padding-right: 12px; font-size: 15px; }
+    #settings-panel { padding: 14px; flex-direction: column; }
+    .settings-section { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
+    .settings-hint { font-size: 11px; color: var(--muted); margin: 4px 0 10px; line-height: 1.5; }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; font-size: 13px; color: var(--text); border-top: 1px solid var(--border); cursor: pointer; }
+    .settings-row:first-of-type { border-top: none; }
   </style>
 </head>
 <body>
@@ -455,6 +463,7 @@
     <button class="mode-tab active" data-mode="coach">Coach</button>
     <button class="mode-tab" data-mode="inject">Demo</button>
     <button class="mode-tab" data-mode="analyst">Analyze</button>
+    <button class="mode-tab mode-tab-settings" data-mode="settings" title="Settings" aria-label="Settings">⚙</button>
   </div>
 
   <!-- Panel body -->
@@ -629,6 +638,20 @@
         <pre id="rawOutput">Waiting...</pre>
       </div>
 
+    </div>
+
+    <!-- ── SETTINGS MODE ── -->
+    <div id="settings-panel" style="display:none">
+      <div class="settings-section">
+        <div class="label">Visible tabs</div>
+        <p class="settings-hint">Show or hide the main tabs. At least one stays on.</p>
+        <label class="settings-row"><span>Coach</span>
+          <span class="switch"><input type="checkbox" data-tabvis="coach" checked /><span class="slider"></span></span></label>
+        <label class="settings-row"><span>Demo</span>
+          <span class="switch"><input type="checkbox" data-tabvis="inject" checked /><span class="slider"></span></span></label>
+        <label class="settings-row"><span>Analyze</span>
+          <span class="switch"><input type="checkbox" data-tabvis="analyst" checked /><span class="slider"></span></span></label>
+      </div>
     </div>
 
   </div><!-- end panel-body -->

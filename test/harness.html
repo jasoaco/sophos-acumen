@@ -85,7 +85,13 @@
         sel.value = pick;
         sel.dispatchEvent(new Event("change"));
       }
-      // ?mode= clicks a top-level mode tab (coach|inject|analyst)
+      // ?hidetab= unchecks a visibility toggle (coach|inject|analyst) to test show/hide
+      const hide = qp.get("hidetab");
+      if (hide) {
+        const cb = document.querySelector(`input[data-tabvis="${hide}"]`);
+        if (cb) { cb.checked = false; cb.dispatchEvent(new Event("change")); }
+      }
+      // ?mode= clicks a top-level mode tab (coach|inject|analyst|settings)
       const mode = qp.get("mode");
       if (mode) document.querySelector(`.mode-tab[data-mode="${mode}"]`)?.click();
       // ?tab= clicks a coach tab after load (talk|discovery|objections|compete)

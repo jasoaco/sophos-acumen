@@ -195,7 +195,7 @@ async function getPageSnapshot() {
 }
 
 // ── Mode switching ──
-const MODE_PANELS = { coach: 'coach-panel', inject: 'inject-panel', analyst: 'analyst-panel' };
+const MODE_PANELS = { coach: 'coach-panel', inject: 'inject-panel', analyst: 'analyst-panel', settings: 'settings-panel' };
 document.querySelectorAll('.mode-tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
@@ -207,6 +207,46 @@ document.querySelectorAll('.mode-tab').forEach(btn => {
     if (currentMode === 'inject') initInject();
   });
 });
+
+// ── Settings: show/hide the main tabs (persisted) ──
+const TAB_VIS_KEY = 'acumenTabVisibility';
+const TOGGLEABLE = ['coach', 'inject', 'analyst']; // 'settings' is always visible
+
+function applyTabVisibility(vis) {
+  TOGGLEABLE.forEach(m => {
+    const btn = document.querySelector(`.mode-tab[data-mode="${m}"]`);
+    if (btn) btn.style.display = vis[m] === false ? 'none' : '';
+    const cb = document.querySelector(`input[data-tabvis="${m}"]`);
+    if (cb) cb.checked = vis[m] !== false;
+  });
+  // If the active tab just got hidden, jump to the first visible one
+  if (TOGGLEABLE.includes(currentMode) && vis[currentMode] === false) {
+    const firstVisible = TOGGLEABLE.find(m => vis[m] !== false);
+    if (firstVisible) document.querySelector(`.mode-tab[data-mode="${firstVisible}"]`)?.click();
+  }
+}
+
+function loadTabVisibility() {
+  Promise.resolve(chrome.storage?.local?.get(TAB_VIS_KEY))
+    .then(data => applyTabVisibility((data && data[TAB_VIS_KEY]) || { coach: true, inject: true, analyst: true }))
+    .catch(() => applyTabVisibility({ coach: true, inject: true, analyst: true }));
+}
+
+document.querySelectorAll('input[data-tabvis]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const vis = {};
+    TOGGLEABLE.forEach(m => { vis[m] = document.querySelector(`input[data-tabvis="${m}"]`).checked; });
+    // Guard: never hide the last visible tab
+    if (!TOGGLEABLE.some(m => vis[m])) {
+      cb.checked = true;
+      return;
+    }
+    chrome.storage?.local?.set({ [TAB_VIS_KEY]: vis });
+    applyTabVisibility(vis);
+  });
+});
+
+loadTabVisibility();
 
 // ── Coach tab switching ──
 document.querySelectorAll('.coach-tab').forEach(btn => {
