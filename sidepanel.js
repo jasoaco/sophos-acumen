@@ -248,6 +248,29 @@ document.querySelectorAll('input[data-tabvis]').forEach(cb => {
 
 loadTabVisibility();
 
+// ── Settings: dark / light theme ──
+const THEME_KEY = 'acumenTheme';
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  const cb = document.getElementById('theme-toggle');
+  if (cb) cb.checked = dark;
+}
+
+function loadTheme() {
+  Promise.resolve(chrome.storage?.local?.get(THEME_KEY))
+    .then(data => applyTheme((data?.[THEME_KEY] || 'light') === 'dark'))
+    .catch(() => applyTheme(false));
+}
+
+document.getElementById('theme-toggle')?.addEventListener('change', e => {
+  const dark = e.target.checked;
+  applyTheme(dark);
+  chrome.storage?.local?.set({ [THEME_KEY]: dark ? 'dark' : 'light' });
+});
+
+loadTheme();
+
 // ── Coach tab switching ──
 document.querySelectorAll('.coach-tab').forEach(btn => {
   btn.addEventListener('click', () => {

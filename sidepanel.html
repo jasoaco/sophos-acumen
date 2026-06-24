@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,7 +18,58 @@
       --muted: rgba(13,24,41,0.50);
       --emerald: #059669;
       --amber: #d97706;
+      /* Semantic vars so dark-mode override is a single block */
+      --text-body: #374151;
+      --text-quote: #1f2937;
+      --text-obj-q: #dc2626;
+      --border-obj: rgba(220,38,38,0.25);
+      --slider-off: #cbd5e1;
+      --brand-title: var(--accent);
     }
+
+    /* ── Dark theme — overrides every root var in one place ── */
+    [data-theme="dark"] {
+      --bg: #08111d;
+      --surface: rgba(255,255,255,0.06);
+      --surface2: rgba(255,255,255,0.09);
+      --border: rgba(255,255,255,0.08);
+      --accent: #00A8E0;
+      --text: #f5fbff;
+      --muted: rgba(245,251,255,0.65);
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --text-body: #cbd5e1;
+      --text-quote: #e2e8f0;
+      --text-obj-q: #fca5a5;
+      --border-obj: rgba(252,165,165,0.28);
+      --slider-off: #475569;
+      --brand-title: var(--text);
+    }
+    /* Targeted dark overrides for elements with opacity-based or multi-property colors */
+    [data-theme="dark"] .coach-banner { background: rgba(0,168,224,0.10); border-color: rgba(0,168,224,0.22); color: #9be0f8; }
+    [data-theme="dark"] .coach-picker { background: rgba(0,168,224,0.04); }
+    [data-theme="dark"] .tag { background: rgba(0,168,224,0.12); color: #9be0f8; border-color: rgba(0,168,224,0.18); }
+    [data-theme="dark"] .q-num { background: rgba(0,168,224,0.12); }
+    [data-theme="dark"] .inject-toggle-row { background: linear-gradient(135deg,rgba(0,168,224,0.10),rgba(0,168,224,0.04)); border-color: rgba(0,168,224,0.22); }
+    [data-theme="dark"] .action-block { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.18); }
+    [data-theme="dark"] button.ghost { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.08); }
+    [data-theme="dark"] button.danger { background: rgba(255,77,90,0.16); color: #ffc8cf; border-color: rgba(255,77,90,0.22); }
+    [data-theme="dark"] .status-dot.inactive { background: #64748b; }
+    [data-theme="dark"] .chip { background: rgba(255,255,255,0.08); color: #c5f0ff; border: none; }
+    [data-theme="dark"] .event-card { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.06); }
+    [data-theme="dark"] .event-card.high, [data-theme="dark"] .event-card.critical { border-color: rgba(255,77,90,0.22); background: rgba(255,77,90,0.06); }
+    [data-theme="dark"] .event-card.medium { border-color: rgba(255,184,77,0.18); background: rgba(255,184,77,0.05); }
+    [data-theme="dark"] .badge.severity-critical, [data-theme="dark"] .badge.severity-high { background: rgba(255,77,90,0.16); color: #ffc8cf; }
+    [data-theme="dark"] .badge.severity-medium { background: rgba(255,184,77,0.16); color: #ffe2b8; }
+    [data-theme="dark"] .badge.severity-low { background: rgba(0,168,224,0.16); color: #c8f1ff; }
+    [data-theme="dark"] .badge.meta { background: rgba(255,255,255,0.08); color: #d4eef9; }
+    [data-theme="dark"] .chat-msg.user { background: rgba(0,168,224,0.14); color: #d3f5ff; }
+    [data-theme="dark"] .chat-msg.assistant { background: rgba(255,255,255,0.06); border: none; }
+    [data-theme="dark"] .toast.success { background: rgba(52,211,153,0.16); color: #a7f3d0; border-color: rgba(52,211,153,0.3); }
+    [data-theme="dark"] .toast.error { background: rgba(255,77,90,0.16); color: #ffc8cf; border-color: rgba(255,77,90,0.3); }
+    [data-theme="dark"] .central-guide { --sophos-blue: #0a5ed7; --sophos-accent: #00A8E0; background: #f8f9fa; }
+    [data-theme="dark"] pre { color: #bfefff; }
+    [data-theme="dark"] .status-inline { color: #d8f6ff; }
 
     body {
       font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -43,7 +94,7 @@
     }
     .brand-icon { width: 28px; height: 28px; flex-shrink: 0; }
     .brand-copy { flex: 1; min-width: 0; }
-    .brand-copy h1 { font-size: 14px; font-weight: 900; letter-spacing: -0.01em; color: var(--accent); }
+    .brand-copy h1 { font-size: 14px; font-weight: 900; letter-spacing: -0.01em; color: var(--brand-title); }
     .brand-copy p { font-size: 10px; color: var(--muted); margin-top: 1px; }
 
     /* ── Mode tabs ── */
@@ -220,7 +271,7 @@
       color: var(--muted);
       margin-bottom: 6px;
     }
-    .card p { font-size: 12px; line-height: 1.55; color: #374151; margin-bottom: 6px; }
+    .card p { font-size: 12px; line-height: 1.55; color: var(--text-body); margin-bottom: 6px; }
     .card p:last-child { margin-bottom: 0; }
 
     /* Talk track */
@@ -228,7 +279,7 @@
       font-size: 12px;
       font-style: italic;
       line-height: 1.65;
-      color: #1f2937;
+      color: var(--text-quote);
       border-left: 2px solid var(--accent);
       padding-left: 10px;
       margin-bottom: 8px;
@@ -262,14 +313,14 @@
       background: rgba(32,6,247,0.09); border-radius: 4px;
       padding: 2px 5px; flex-shrink: 0; margin-top: 1px;
     }
-    .q-text { font-size: 12px; line-height: 1.5; color: #374151; }
+    .q-text { font-size: 12px; line-height: 1.5; color: var(--text-body); }
 
     /* Objections */
     .obj-item { margin-bottom: 10px; }
-    .obj-q { font-size: 11px; font-weight: 700; color: #dc2626; margin-bottom: 4px; }
+    .obj-q { font-size: 11px; font-weight: 700; color: var(--text-obj-q); margin-bottom: 4px; }
     .obj-a {
-      font-size: 12px; line-height: 1.55; color: #374151;
-      padding-left: 10px; border-left: 2px solid rgba(220,38,38,0.25);
+      font-size: 12px; line-height: 1.55; color: var(--text-body);
+      padding-left: 10px; border-left: 2px solid var(--border-obj);
     }
 
     /* Compete */
@@ -277,7 +328,7 @@
     .comp-name { font-size: 11px; font-weight: 900; color: var(--emerald); margin-bottom: 5px; }
     .comp-points { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .comp-points li {
-      font-size: 11px; color: #374151; padding-left: 14px;
+      font-size: 11px; color: var(--text-body); padding-left: 14px;
       position: relative; line-height: 1.4;
     }
     .comp-points li::before { content: "✓"; position: absolute; left: 0; color: var(--emerald); font-size: 9px; top: 2px; }
@@ -341,7 +392,7 @@
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute; inset: 0; cursor: pointer; border-radius: 999px;
-      background: #cbd5e1; transition: 0.2s;
+      background: var(--slider-off); transition: 0.2s;
     }
     .slider::before {
       content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px;
@@ -387,7 +438,7 @@
     .status-inline { font-size: 11px; color: var(--muted); margin-top: 6px; }
 
     ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
-    li { color: #374151; line-height: 1.45; font-size: 12px; }
+    li { color: var(--text-body); line-height: 1.45; font-size: 12px; }
 
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip { padding: 5px 9px; border-radius: 999px; background: var(--surface2); color: var(--text); font-size: 11px; border: 1px solid var(--border); }
@@ -644,6 +695,11 @@
 
     <!-- ── SETTINGS MODE ── -->
     <div id="settings-panel" style="display:none">
+      <div class="settings-section" style="margin-bottom:10px">
+        <div class="label">Appearance</div>
+        <label class="settings-row"><span>Dark Mode</span>
+          <span class="switch"><input type="checkbox" id="theme-toggle" /><span class="slider"></span></span></label>
+      </div>
       <div class="settings-section">
         <div class="label">Visible tabs</div>
         <p class="settings-hint">Show or hide the main tabs. At least one stays on.</p>
