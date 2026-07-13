@@ -68,6 +68,19 @@ const PRODUCT_ROUTE_MAP = [
   { pattern: /\/phish/i,       product: 'phish' },
 ];
 
+// Scenario ID → field-guide product key (drives Coach auto-select when a demo is active)
+const SCENARIO_PRODUCT_MAP = {
+  'ransomware-akira':     'endpoint',
+  'mdr-default':          'mdr',
+  'xdr-default':          'taegis',
+  'phishing-default':     'email',
+  'bec-default':          'email',
+  'insider-default':      'itdr',
+  'supply-chain-default': 'endpoint',
+  'zero-day-default':     'endpoint',
+  'healthy-default':      'endpoint',
+};
+
 // Returns { isCentral, product, segment } — segment is the raw /manage slug,
 // surfaced even when unmapped so the empty state can name it.
 let currentCentralPage = null; // active platform-page guide id (CENTRAL_CONTENT), or null
@@ -367,6 +380,23 @@ async function autoDetect() {
         : isCentral && segment
           ? `Central · ${segment} (unmapped)`
           : 'Navigate to a product page to begin';
+}
+
+// When a scenario is active in the Demo tab, auto-select the matching Coach product.
+// Respects pinnedProduct — if the user manually picked a product, leave it alone.
+function selectProductFromScenario(scenarioId) {
+  if (pinnedProduct) return;
+  const productKey = SCENARIO_PRODUCT_MAP[scenarioId];
+  if (!productKey || productKey === currentProduct) return;
+  currentProduct = productKey;
+  currentScreenIdx = 0;
+  renderCoachHeader();
+  renderCoachContent();
+  const scenarioName = injectScenarios.find(s => s.id === scenarioId)?.name;
+  const productName = window.PRODUCTS?.[productKey]?.name || productKey;
+  document.getElementById('top-subtitle').textContent = scenarioName
+    ? `${productName} · ${scenarioName}`
+    : `${productName} · from scenario`;
 }
 
 chrome.tabs.onActivated.addListener(autoDetect);
@@ -827,6 +857,7 @@ function initInject() {
       injServers().value = state.serverCount || 186;
       injBadge().checked = state.showBadge !== false;
       injUpdateUI(state);
+      selectProductFromScenario(injSel().value);
     });
   });
 
@@ -849,6 +880,7 @@ function initInject() {
       injSaveState();
     }
     injUpdateDesc();
+    selectProductFromScenario(injSel().value);
   });
   injCustomer().addEventListener('input', injDebounce(() => injSaveState(), 500));
   injEndpoints().addEventListener('input', injDebounce(() => injSaveState(), 500));
@@ -944,6 +976,12 @@ function injImport(scenario) {
 }
 
 // ── Helpers ──
+// Pre-warm Coach from persisted injection state — so the right product is ready
+// even before the user visits the Demo tab in this session.
+chrome.runtime?.sendMessage?.({ type: 'GET_STATE' }, state => {
+  if (!chrome.runtime?.lastError && state?.scenario) selectProductFromScenario(state.scenario);
+});
+
 function card(label, innerHtml) {
   const div = document.createElement('div');
   div.className = 'card';
