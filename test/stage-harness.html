@@ -37,7 +37,7 @@
         storage: { local: { get: async () => ({}), set: async () => {} } },
       };
 
-      const html = await fetch('../prelude/stage.html').then(r => r.text());
+      const html = await fetch('../prelude/stage.html?v=' + Date.now()).then(r => r.text());
       const doc = new DOMParser().parseFromString(html, 'text/html');
       doc.querySelectorAll('style').forEach(s => document.head.appendChild(s));
       doc.querySelectorAll('script').forEach(s => s.remove());
