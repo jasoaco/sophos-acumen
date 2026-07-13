@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Stage Harness — Akira Ransomware</title>
+</head>
+<body>
+  <div id="mount"></div>
+  <script>
+    (async () => {
+      const scenarioData = await fetch('../scenarios/ransomware.json').then(r => r.json());
+
+      const FAKE_STATE = {
+        enabled: true,
+        scenario: 'ransomware-akira',
+        launchMode: 'prelude',
+        customerName: 'Contoso Healthcare',
+        endpointCount: 2500,
+        serverCount: 186,
+        scenarioData,
+      };
+
+      window.chrome = {
+        tabs: {
+          query: (q, cb) => cb([{ id: 1, url: 'https://central.sophos.com/manage/dashboard' }]),
+          update: () => {}, create: () => {}, reload: () => {},
+          onActivated: { addListener: () => {} },
+          onUpdated: { addListener: () => {} },
+        },
+        scripting: { executeScript: async () => [] },
+        runtime: {
+          id: 'harness',
+          getURL: p => '../' + p,
+          onMessage: { addListener: () => {} },
+          sendMessage: (msg, cb) => { if (typeof cb === 'function') cb(FAKE_STATE); },
+        },
+        storage: { local: { get: async () => ({}), set: async () => {} } },
+      };
+
+      const html = await fetch('../prelude/stage.html').then(r => r.text());
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      doc.querySelectorAll('style').forEach(s => document.head.appendChild(s));
+      doc.querySelectorAll('script').forEach(s => s.remove());
+      document.getElementById('mount').innerHTML = doc.body.innerHTML;
+
+      const load = src => new Promise((res, rej) => {
+        const el = document.createElement('script');
+        el.src = src; el.onload = res; el.onerror = rej;
+        document.body.appendChild(el);
+      });
+      await load('../prelude/stage.js?v=' + Date.now());
+    })();
+  </script>
+</body>
+</html>

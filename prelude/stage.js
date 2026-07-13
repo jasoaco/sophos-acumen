@@ -507,6 +507,10 @@ function escapeHtml(s) {
   return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
 }
 
+function tpl(str, vars) {
+  return String(str || '').replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
+}
+
 function buildAttackFeed(scenario) {
   const steps = [];
   const prelude = scenario.prelude || {};
@@ -553,9 +557,10 @@ function renderFeed(scenario) {
   const compact = document.getElementById('feed-compact');
   const items = buildAttackFeed(scenario);
   const prelude = scenario.prelude || {};
+  const vars = { customerName: scenario.customer?.name || 'the customer', industry: scenario.customer?.industry || 'general' };
 
-  document.getElementById('feed-hero-title').textContent = prelude.title || scenario.name || 'Threat storyline';
-  document.getElementById('feed-hero-copy').textContent = prelude.subtitle || scenario.description || 'Threat context before the Sophos Central walkthrough.';
+  document.getElementById('feed-hero-title').textContent = tpl(prelude.title || scenario.name || 'Threat storyline', vars);
+  document.getElementById('feed-hero-copy').textContent = tpl(prelude.subtitle || scenario.description || 'Threat context before the Sophos Central walkthrough.', vars);
 
   const feedHtml = items.map((item) => {
     const m = getMilestone(item.technique?.id);
@@ -572,8 +577,8 @@ function renderFeed(scenario) {
       <div class="feed-chip chip-complete">COMPLETE</div>
       <div class="feed-info">
         <div class="feed-tactic">${escapeHtml(item.type)}</div>
-        <div class="feed-name">${escapeHtml(item.title)}</div>
-        <div class="feed-tech">${escapeHtml(item.body)}</div>
+        <div class="feed-name">${escapeHtml(tpl(item.title, vars))}</div>
+        <div class="feed-tech">${escapeHtml(tpl(item.body, vars))}</div>
       </div>
     </div>`;
   }).join('');
@@ -582,7 +587,7 @@ function renderFeed(scenario) {
   container.innerHTML = hero + feedHtml;
 
   if (compact) compact.innerHTML = items.map((item) => `<div class="feed-item-sm">
-      <div class="feed-name-sm">${escapeHtml(item.title)}</div>
+      <div class="feed-name-sm">${escapeHtml(tpl(item.title, vars))}</div>
       <div class="feed-tactic-sm">${escapeHtml(item.type)}</div>
     </div>`).join('');
 }
@@ -601,16 +606,18 @@ function renderBriefing(scenario) {
     'Show detections and threat activity to prove the chain, then close on response actions.'
   ];
 
+  const vars = { customerName, industry };
+
   document.getElementById('scenario-name').textContent = scenario.name || 'Scenario';
   document.getElementById('brief-eyebrow').textContent = prelude.threatFamily || 'Threat Briefing';
-  document.getElementById('brief-title').textContent = prelude.title || scenario.name || 'Threat Briefing';
-  document.getElementById('brief-subtitle').textContent = prelude.subtitle || scenario.description || '';
+  document.getElementById('brief-title').textContent = tpl(prelude.title || scenario.name || 'Threat Briefing', vars);
+  document.getElementById('brief-subtitle').textContent = tpl(prelude.subtitle || scenario.description || '', vars);
 
   const storySteps = document.getElementById('story-steps');
   storySteps.innerHTML = (prelude.slides || []).map((slide) => `
     <div class="story-step">
-      <h3>${escapeHtml(slide.title || '')}</h3>
-      <p>${escapeHtml(slide.body || '')}</p>
+      <h3>${escapeHtml(tpl(slide.title || '', vars))}</h3>
+      <p>${escapeHtml(tpl(slide.body || '', vars))}</p>
     </div>
   `).join('');
 
@@ -634,7 +641,7 @@ function renderBriefing(scenario) {
 
   document.getElementById('transition-headline').textContent = `Show ${customerName} what this looks like in Sophos Central`;
   document.getElementById('transition-copy').textContent = `You now move from the attack narrative into live operational proof for ${customerName}: the rendered alerts, case context, detections, threat storyline, and response path that appear directly inside the injected Sophos Central experience.`;
-  document.getElementById('transition-line').textContent = prelude.transitionLine || 'Now let’s pivot into Sophos Central and show exactly how your team would see, investigate, and respond to this incident.';
+  document.getElementById('transition-line').textContent = tpl(prelude.transitionLine || "Now let's pivot into Sophos Central and show exactly how your team would see, investigate, and respond to this incident.", vars);
   document.getElementById('expected-points').innerHTML = points.map((p) => `<div class="proof-item">${escapeHtml(p)}</div>`).join('');
   document.getElementById('click-path').innerHTML = clickPath.map((p) => `<div class="proof-item">${escapeHtml(p)}</div>`).join('');
 }
