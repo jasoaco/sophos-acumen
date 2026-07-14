@@ -316,6 +316,24 @@
       background:
         radial-gradient(ellipse at 36% 33%, rgba(155,215,255,0.20) 0%, transparent 38%),
         radial-gradient(ellipse at 63% 26%, rgba(145,88,255,0.13) 0%, transparent 26%);
+      animation: w11-bloom-breathe 14s ease-in-out infinite;
+    }
+    .win11-bg::before {
+      content: '';
+      position: absolute;
+      top: 18%; left: 22%; width: 55%; height: 50%;
+      background: radial-gradient(ellipse, rgba(90,160,255,0.14) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: w11-bloom-pulse 9s ease-in-out infinite 2s;
+      pointer-events: none;
+    }
+    @keyframes w11-bloom-breathe {
+      0%, 100% { opacity: 0.75; }
+      50%       { opacity: 1; }
+    }
+    @keyframes w11-bloom-pulse {
+      0%, 100% { transform: scale(1);    opacity: 0.6; }
+      50%       { transform: scale(1.18); opacity: 1; }
     }
 
     /* Windows */
@@ -644,6 +662,29 @@
       font-size: 11px; cursor: pointer; padding: 0 4px; flex-shrink: 0;
     }
     .w11-toast-dismiss:hover { color: #fff; }
+
+    /* VPN status dot ambient pulse */
+    @keyframes w11-vpn-pulse {
+      0%, 100% { box-shadow: 0 0 0 5px rgba(245,166,35,0.12); }
+      50%       { box-shadow: 0 0 0 12px rgba(245,166,35,0.20), 0 0 0 22px rgba(245,166,35,0.06); }
+    }
+    #vpn-status-dot { animation: w11-vpn-pulse 2.2s ease-in-out infinite; }
+
+    /* Search pill blinking cursor */
+    .w11-search-pill-hint::after {
+      content: '|';
+      color: rgba(255,255,255,0.28);
+      animation: w11-caret 1.1s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes w11-caret { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* Task Manager CPU bars flicker */
+    @keyframes tm-cpu-flicker {
+      0%,100% { opacity: 1; }
+      30%      { opacity: 0.85; }
+      60%      { opacity: 0.95; }
+    }
 
     /* Search pill in taskbar */
     .w11-search-pill {

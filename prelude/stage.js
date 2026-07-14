@@ -459,8 +459,8 @@ function goToSlide(n) {
   document.getElementById('nav-next').classList.toggle('disabled', currentSlide === 2);
 
   if (currentSlide === 2) {
-    // Initialize phase navigator at Day 1
     selectPhase(0);
+    setTimeout(playPhase0, 600); // auto-start Day 1 animation on slide entry
   } else if (prev === 2) {
     clearPhaseTimers();
     resetWin11Sim();
@@ -471,7 +471,7 @@ function navigate(dir) { goToSlide(currentSlide + dir); }
 
 function startTimer() {
   updateWin11Clock();
-  setInterval(updateWin11Clock, 30000); // update Win11 clock every 30s
+  setInterval(updateWin11Clock, 1000); // live clock tick
   timerTick = setInterval(() => {
     const s = Math.floor((Date.now() - opStart) / 1000);
     const hh = String(Math.floor(s / 3600)).padStart(2, '0');
@@ -696,9 +696,9 @@ function renderBriefing(scenario) {
   on('phase-play-btn', playCurrentPhase);
 
   // Scene CTA buttons
-  on('scene0-next', () => selectPhase(1));
-  on('scene1-prev', () => selectPhase(0));
-  on('scene1-next', () => selectPhase(2));
+  on('scene0-next', () => { selectPhase(1); setTimeout(playPhase1, 500); });
+  on('scene1-prev', () => { selectPhase(0); setTimeout(playPhase0, 500); });
+  on('scene1-next', () => { selectPhase(2); setTimeout(startWin11Sim, 500); });
 
   // Guide Mode toggle
   on('guide-mode-btn', () => {
