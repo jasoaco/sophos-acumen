@@ -452,16 +452,16 @@ function playPhase1() {
 
 function goToSlide(n) {
   const prev = currentSlide;
-  currentSlide = Math.max(0, Math.min(2, n));
+  currentSlide = Math.max(0, Math.min(1, n));
   document.getElementById('slides-track').style.transform = `translateX(-${currentSlide * 100}vw)`;
   document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
   document.getElementById('nav-prev').classList.toggle('disabled', currentSlide === 0);
-  document.getElementById('nav-next').classList.toggle('disabled', currentSlide === 2);
+  document.getElementById('nav-next').classList.toggle('disabled', currentSlide === 1);
 
-  if (currentSlide === 2) {
+  if (currentSlide === 1) {
     selectPhase(0);
     setTimeout(playPhase0, 600); // auto-start Day 1 animation on slide entry
-  } else if (prev === 2) {
+  } else if (prev === 1) {
     clearPhaseTimers();
     resetWin11Sim();
   }
@@ -515,46 +515,31 @@ function buildAttackFeed(scenario) {
   const steps = [];
   const prelude = scenario.prelude || {};
   const mitre = prelude.mitreTechniques || [];
-  const alerts = scenario.alerts?.items || [];
-  const detections = scenario.detections?.items || [];
 
   if (prelude.slides?.length) {
+    const slideCount = prelude.slides.length;
+    const perSlide = Math.ceil(mitre.length / slideCount);
     prelude.slides.forEach((slide, idx) => {
-      const mt = mitre[idx] || mitre[0] || null;
+      const start = idx * perSlide;
+      const techniques = mitre.slice(start, start + perSlide);
       steps.push({
         type: 'slide',
+        idx,
         title: slide.title,
         body: slide.body,
-        technique: mt
+        technique: techniques[0] || null,
+        techniques,
       });
     });
   }
 
-  detections.slice(0, 2).forEach((d) => {
-    const mt = d.mitreAttacks?.[0]?.tactic?.techniques?.[0] || null;
-    steps.push({
-      type: 'detection',
-      title: d.ruleDescription || d.caseDescription || d.attackType || 'Detection',
-      body: d.rawData?.cmdline || d.device?.hostname || '',
-      technique: mt
-    });
-  });
-
-  alerts.slice(0, 2).forEach((a) => {
-    steps.push({
-      type: 'alert',
-      title: a.description || a.type || 'Alert',
-      body: a.info || a.location || '',
-      technique: null
-    });
-  });
-
-  return steps.slice(0, 6);
+  return steps;
 }
+
+const PHASE_COLORS = ['#00a8e0', '#ff8c00', '#e53935'];
 
 function renderFeed(scenario) {
   const container = document.getElementById('feed-full');
-  const compact = document.getElementById('feed-compact');
   const items = buildAttackFeed(scenario);
   const prelude = scenario.prelude || {};
   const vars = { customerName: scenario.customer?.name || 'the customer', industry: scenario.customer?.industry || 'general' };
@@ -562,82 +547,58 @@ function renderFeed(scenario) {
   document.getElementById('feed-hero-title').textContent = tpl(prelude.title || scenario.name || 'Threat storyline', vars);
   document.getElementById('feed-hero-copy').textContent = tpl(prelude.subtitle || scenario.description || 'Threat context before the Sophos Central walkthrough.', vars);
 
-  const feedHtml = items.map((item) => {
-    const m = getMilestone(item.technique?.id);
-    if (m) {
-      return `<div class="feed-impact" style="border-color:${m.color}; background:${m.bg}">
-        <span class="fi-icon">${m.icon}</span>
-        <div>
-          <div class="fi-label" style="color:${m.color}">${escapeHtml(m.label)}</div>
-          <div class="fi-tech">${escapeHtml(item.technique?.id || '')}${item.technique?.name ? ' — ' + escapeHtml(item.technique.name) : ''}</div>
+  const nodesHtml = items.map((item) => {
+    const color = PHASE_COLORS[item.idx] || PHASE_COLORS[PHASE_COLORS.length - 1];
+    const fullTitle = tpl(item.title, vars);
+    const dayLabel = fullTitle.match(/^([^:]+)/)?.[1]?.trim() || 'Phase';
+    const techniques = item.techniques || (item.technique ? [item.technique] : []);
+    const badgesHtml = techniques.map((t) =>
+      `<span class="atk-badge"><span class="atk-badge-id">${escapeHtml(t.id)}</span> ${escapeHtml(t.name)}</span>`
+    ).join('');
+    const chevron = `<svg class="atk-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+    return `<div class="atk-node" style="--nd-color:${color}">
+      <div class="atk-dot"></div>
+      <div class="atk-card">
+        <div class="atk-day">${escapeHtml(dayLabel)}</div>
+        <div class="atk-title-row">
+          <div class="atk-title-text">${escapeHtml(fullTitle)}</div>
+          ${chevron}
         </div>
-      </div>`;
-    }
-    return `<div class="feed-item">
-      <div class="feed-chip chip-complete">COMPLETE</div>
-      <div class="feed-info">
-        <div class="feed-tactic">${escapeHtml(item.type)}</div>
-        <div class="feed-name">${escapeHtml(tpl(item.title, vars))}</div>
-        <div class="feed-tech">${escapeHtml(tpl(item.body, vars))}</div>
+        <div class="atk-body-text">${escapeHtml(tpl(item.body || '', vars))}</div>
+        ${badgesHtml ? `<div class="atk-badges">${badgesHtml}</div>` : ''}
       </div>
     </div>`;
   }).join('');
 
-  const hero = container.querySelector('.feed-hero')?.outerHTML || '';
-  container.innerHTML = hero + feedHtml;
+  const timelineCol = document.getElementById('feed-timeline-col');
+  timelineCol.innerHTML = `<div class="atk-timeline">${nodesHtml}</div>`;
+  timelineCol.addEventListener('click', (e) => {
+    const node = e.target.closest('.atk-node');
+    if (node) node.classList.toggle('expanded');
+  });
 
-  if (compact) compact.innerHTML = items.map((item) => `<div class="feed-item-sm">
-      <div class="feed-name-sm">${escapeHtml(tpl(item.title, vars))}</div>
-      <div class="feed-tactic-sm">${escapeHtml(item.type)}</div>
-    </div>`).join('');
+  // Populate right column — talking points first, industry angle second
+  const preludeData = scenario.prelude || {};
+  const ind = scenario.customer?.industry || 'general';
+  const allPoints = [
+    ...(preludeData.talkingPoints || []),
+    ...((preludeData.industryTalkingPoints || {})[ind] || []),
+  ].slice(0, 4).map((p) => tpl(p, vars));
+  const proofEl = document.getElementById('feed-proof-points');
+  if (proofEl) proofEl.innerHTML = allPoints.map((p) => `<div class="feed-proof-item">${escapeHtml(p)}</div>`).join('');
 }
 
 function renderBriefing(scenario) {
   const prelude = scenario.prelude || {};
   const customerName = scenario.customer?.name || 'the customer';
   const industry = scenario.customer?.industry || 'general';
-  const industryPoints = prelude.industryTalkingPoints?.[industry] || [];
   const points = prelude.expectedDetections || [];
-  const presenterPoints = prelude.talkingPoints || [];
-  const milestoneItems = prelude.milestones || [];
   const clickPath = prelude.clickPath || [
     'Open the high-priority alert and frame why it matters immediately.',
     'Move into the investigation/case view to show correlated context.',
     'Show detections and threat activity to prove the chain, then close on response actions.'
   ];
-
   const vars = { customerName, industry };
-
-  document.getElementById('scenario-name').textContent = scenario.name || 'Scenario';
-  document.getElementById('brief-eyebrow').textContent = prelude.threatFamily || 'Threat Briefing';
-  document.getElementById('brief-title').textContent = tpl(prelude.title || scenario.name || 'Threat Briefing', vars);
-  document.getElementById('brief-subtitle').textContent = tpl(prelude.subtitle || scenario.description || '', vars);
-
-  const storySteps = document.getElementById('story-steps');
-  storySteps.innerHTML = (prelude.slides || []).map((slide) => `
-    <div class="story-step">
-      <h3>${escapeHtml(tpl(slide.title || '', vars))}</h3>
-      <p>${escapeHtml(tpl(slide.body || '', vars))}</p>
-    </div>
-  `).join('');
-
-  const proofPoints = document.getElementById('proof-points');
-  proofPoints.innerHTML = [...points, ...presenterPoints, ...industryPoints].map((p) => `<div class="impact-item">${escapeHtml(p)}</div>`).join('');
-
-  const milestoneGrid = document.getElementById('milestone-grid');
-  milestoneGrid.innerHTML = milestoneItems.map((m) => {
-    const meta = getMilestone(m.id) || { icon: '◆', label: m.label || 'Milestone', color: '#00A8E0' };
-    return `<div class="milestone-card">
-      <div class="milestone-top">
-        <span class="milestone-icon">${escapeHtml(meta.icon)}</span>
-        <span class="milestone-label" style="color:${meta.color}">${escapeHtml(m.label || meta.label)}</span>
-      </div>
-      <div class="milestone-tech">${escapeHtml(m.id || '')}</div>
-    </div>`;
-  }).join('');
-
-  const mitrePills = document.getElementById('mitre-pills');
-  mitrePills.innerHTML = (prelude.mitreTechniques || []).map((m) => `<div class="pill">${escapeHtml(m.id)} — ${escapeHtml(m.name)}</div>`).join('');
 
   document.getElementById('transition-headline').textContent = `Show ${customerName} what this looks like in Sophos Central`;
   document.getElementById('transition-copy').textContent = `You now move from the attack narrative into live operational proof for ${customerName}: the rendered alerts, case context, detections, threat storyline, and response path that appear directly inside the injected Sophos Central experience.`;
@@ -667,7 +628,7 @@ function renderBriefing(scenario) {
   document.getElementById('nav-next').addEventListener('click', () => navigate(1));
   document.querySelectorAll('.dot').forEach((d, i) => d.addEventListener('click', () => goToSlide(i)));
   document.getElementById('launchBtn').addEventListener('click', launchCentral);
-  document.getElementById('restartBtn').addEventListener('click', () => goToSlide(1));
+  document.getElementById('restartBtn').addEventListener('click', () => goToSlide(0));
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') navigate(1);
@@ -686,8 +647,6 @@ function renderBriefing(scenario) {
   }
 
   // Briefing slide nav
-  on('briefing-next', () => navigate(1));
-  on('briefing-prev', () => navigate(-1));
 
   // Phase navigator
   on('phase-btn-0', () => selectPhase(0));

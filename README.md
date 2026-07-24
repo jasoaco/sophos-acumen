@@ -131,7 +131,7 @@ Sophos Acumen is an **unpacked Chrome extension**. There is no build step — it
 ### Install
 1. Clone the repository:
    ```bash
-   git clone https://github.com/jasoaco79/sophos-acumen.git
+   git clone https://github.com/jasoaco/sophos-acumen.git
    ```
 2. Open `chrome://extensions` in your browser.
 3. Enable **Developer mode** (top-right toggle).

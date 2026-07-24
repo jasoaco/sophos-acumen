@@ -447,19 +447,107 @@ function renderCoachHeader() {
   sel.value = currentScreenIdx;
 }
 
-// Self-documenting empty state: on Central but the section isn't mapped yet.
-// Names the raw slug so it can be added to SEGMENT_MAP.
+const SLUG_GUIDE = {
+  overview: {
+    title: 'Overview',
+    desc: 'The Central home dashboard. Shows a high-level security posture summary across all products in the tenant — alerts, threat counts, license status, and activity trends. Good entry point for a health check conversation.',
+  },
+  dashboard: {
+    title: 'Dashboard',
+    desc: 'Customizable summary view of the tenant\'s security status. Widgets surface active alerts, policy compliance, device health, and recent detections. Use this to orient a customer on their current posture before diving into product areas.',
+  },
+  alerts: {
+    title: 'Alerts',
+    desc: 'Centralized alert queue across all Sophos products in the tenant. Customers triage detections here before they flow into cases. A busy alert queue is a great conversation hook for MDR or managed detection workflows.',
+  },
+  events: {
+    title: 'Events',
+    desc: 'Raw event log from across the estate — endpoint, firewall, email, and cloud. Useful for hunting and forensic reconstruction. Pairs naturally with the XDR pitch around unified telemetry.',
+  },
+  reports: {
+    title: 'Reports',
+    desc: 'Scheduled and on-demand reporting across the Sophos product suite. Customers use this for compliance, board-level reporting, and QBR prep. A good signal of whether the customer is measuring outcomes — if they\'re not running reports, they may not be getting value.',
+  },
+  settings: {
+    title: 'Settings',
+    desc: 'Tenant-wide configuration for Sophos Central — notification preferences, admin roles, integrations, and SIEM/SOAR connectors. Changes here affect all products and all users in the tenant.',
+  },
+  'global-settings': {
+    title: 'Global Settings',
+    desc: 'Top-level tenant configuration surface. Controls admin access, branding for MSPs, and global policy defaults that cascade down to all products.',
+  },
+  users: {
+    title: 'Users',
+    desc: 'Directory of user accounts in the tenant, synced from AD/Azure AD or managed locally. Used to assign policies, scope investigations to specific users, and configure user-based licensing. A large user count with no product coverage is a gap worth surfacing.',
+  },
+  account: {
+    title: 'Account',
+    desc: 'The tenant\'s own account details — company name, contact info, license summary, and subscription tier. Useful context before a renewal or upsell conversation.',
+  },
+  devices: {
+    title: 'Devices',
+    desc: 'Full device inventory across the estate — endpoints, servers, and mobile. Shows OS breakdown, agent version, health status, and policy assignment. Coverage gaps here (devices without agents) are a direct sales opportunity.',
+  },
+  billing: {
+    title: 'Billing',
+    desc: 'License consumption, renewal dates, and order history. Accessible to partners and admins. Good place to confirm seat counts before renewal and spot any over/under-provisioning.',
+  },
+  policies: {
+    title: 'Policies',
+    desc: 'Central policy management for all Sophos products. Customers configure detection sensitivity, exclusions, and response actions here. Misconfigured or permissive policies are a common gap — worth reviewing if a customer reports too many false positives or missed detections.',
+  },
+  notifications: {
+    title: 'Notifications',
+    desc: 'Alert routing configuration — where and how Central sends email or webhook notifications for security events. If a customer says they\'re not hearing about threats in time, this is often why.',
+  },
+  'api-credentials': {
+    title: 'API Credentials',
+    desc: 'Client ID / client secret management for the Sophos Central API. Used by SIEM connectors, SOAR playbooks, and third-party integrations. A customer visiting here is likely integrating or troubleshooting an integration — a good moment to discuss Sophos\' native SIEM/SOAR partners.',
+  },
+  partner: {
+    title: 'Partner Portal',
+    desc: 'MSP/partner management surface within Central. Used by managed service providers to manage sub-tenants, delegate admin access, and view cross-tenant reporting. Relevant for partner-led deals and MSP licensing discussions.',
+  },
+  'threat-analysis-center': {
+    title: 'Threat Analysis Center',
+    desc: 'XDR investigation hub — cross-product telemetry searchable via Live Discover (SQL). Core to the XDR value proposition around unified visibility across endpoint, firewall, email, and cloud. Strong proof point for the "single pane of glass" story.',
+  },
+  'live-discover': {
+    title: 'Live Discover',
+    desc: 'SQL-based threat hunting and live query tool for the estate. Analysts can run queries across all enrolled devices in real time. Demonstrates the "single pane of glass" story — a strong proof point for XDR and MDR.',
+  },
+  'remote-assistance': {
+    title: 'Remote Assistance',
+    desc: 'Sophos-initiated remote desktop capability for live endpoint investigation and response. Used by MDR and support teams. Good to mention in the context of MDR response time and "eyes on glass" conversations.',
+  },
+  cases: {
+    title: 'Cases',
+    desc: 'Incident management surface in Central. Groups related alerts and events into a single investigation thread. A well-managed cases queue is a sign of a mature SOC workflow — or an argument for MDR if they\'re not working cases at all.',
+  },
+};
+
+// On Central but the section isn't mapped to a product coaching guide.
 function showUnmappedCentral(segment) {
   document.getElementById('coach-header').style.display = 'none';
   document.getElementById('coach-controls').style.display = 'none';
   document.getElementById('coach-tabs').style.display = 'none';
+
+  const guide = segment && SLUG_GUIDE[segment];
+  let body;
+  if (guide) {
+    body =
+      `<div style="margin-bottom:8px;font-size:13px;font-weight:600;color:#e0eaff">${guide.title}</div>` +
+      `<div style="font-size:12px;line-height:1.55;color:#b0c4de">${guide.desc}</div>`;
+  } else if (segment) {
+    body =
+      `This section — <code style="color:#9be0f8">${segment}</code> — isn't mapped to the field guide yet. ` +
+      `Navigate to a product area, or send this slug to add it.`;
+  } else {
+    body = `No product section found in the URL. Open a product area to load coaching content.`;
+  }
+
   document.getElementById('coach-content').innerHTML =
-    `<div class="coach-empty">` +
-    `<strong>Sophos Central detected</strong>` +
-    (segment
-      ? `This section — <code style="color:#9be0f8">${segment}</code> — isn't mapped to the field guide yet. Navigate to a product area, or send this slug to add it.`
-      : `No product section found in the URL. Open a product area to load coaching content.`) +
-    `</div>`;
+    `<div class="coach-empty"><strong>Sophos Central · ${guide ? guide.title : (segment || 'No section')}</strong>${body}</div>`;
 }
 
 // Render a platform-page guide (HTML blob from CENTRAL_CONTENT). These pages are

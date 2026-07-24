@@ -129,6 +129,81 @@
     .feed-tactic { font-size: 15px; color: var(--orange); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 5px; }
     .feed-name { font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1.2; margin-bottom: 7px; }
     .feed-tech { font-size: 15px; color: var(--cyan); letter-spacing: .04em; }
+    .feed-body { display: grid; grid-template-columns: 1.4fr 0.9fr; gap: 24px; align-items: start; }
+    .feed-right-col {
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 18px; position: sticky; top: 0;
+    }
+    #feed-proof-points { display: grid; gap: 7px; }
+    .feed-proof-item {
+      padding: 8px 12px; background: rgba(255,255,255,0.03);
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px; color: var(--muted); line-height: 1.4;
+    }
+    #feed-mitre-pills .pill { font-size: 11px; padding: 5px 10px; }
+
+    /* ── Attack Timeline (slide 0 + briefing story steps) ─── */
+    .atk-timeline {
+      position: relative; padding: 4px 0 4px 30px; margin-top: 16px;
+    }
+    .atk-timeline::before {
+      content: ''; position: absolute; left: 9px; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, #00a8e0 0%, #ff8c00 55%, #e53935 100%);
+      border-radius: 2px;
+    }
+    .atk-node { position: relative; margin-bottom: 14px; }
+    .atk-dot {
+      position: absolute; left: -25px; top: 14px;
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid var(--nd-color, #00a8e0);
+      background: #080f1d;
+      box-shadow: 0 0 7px var(--nd-color, #00a8e0);
+      z-index: 1;
+    }
+    .atk-card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-left: 3px solid var(--nd-color, #00a8e0);
+      border-radius: 10px; padding: 12px 16px;
+      cursor: pointer; user-select: none;
+      transition: background 0.15s;
+    }
+    .atk-card:hover { background: rgba(255,255,255,0.04); }
+    .atk-day {
+      font-size: 10px; color: var(--nd-color, #00a8e0);
+      text-transform: uppercase; letter-spacing: 0.14em;
+      font-weight: 700; margin-bottom: 3px;
+    }
+    .atk-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .atk-title-text {
+      font-family: var(--font-display); font-size: 15px;
+      font-weight: 700; line-height: 1.3;
+    }
+    .atk-chevron {
+      flex-shrink: 0; margin-top: 2px; opacity: 0.35;
+      transition: transform 0.22s ease, opacity 0.15s;
+    }
+    .atk-node.expanded .atk-chevron { transform: rotate(180deg); opacity: 0.7; }
+    .atk-body-text {
+      font-size: 12.5px; color: var(--muted); line-height: 1.55;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.22s;
+      opacity: 0; margin-top: 0;
+    }
+    .atk-node.expanded .atk-body-text {
+      max-height: 300px; opacity: 1; margin-top: 10px;
+    }
+    .atk-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .atk-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 4px; padding: 2px 7px;
+      font-size: 10px; color: rgba(255,255,255,0.5);
+      font-family: monospace; letter-spacing: 0.02em;
+    }
+    .atk-badge-id { color: var(--nd-color, #00a8e0); font-weight: 700; }
+
     .stage-main {
       position: absolute; top: 52px; bottom: 0; left: 0; right: 0; padding: 36px 34px 60px; overflow-y: auto;
     }
@@ -302,27 +377,27 @@
     .win11-bg {
       position: absolute; inset: 0;
       background:
-        radial-gradient(ellipse at 28% 35%, rgba(190,120,255,0.42) 0%, transparent 32%),
-        radial-gradient(ellipse at 68% 22%, rgba(255,80,180,0.28) 0%, transparent 30%),
-        radial-gradient(ellipse at 52% 62%, rgba(100,60,200,0.55) 0%, rgba(60,20,130,0.35) 28%, transparent 55%),
-        radial-gradient(ellipse at 82% 72%, rgba(80,0,160,0.40) 0%, transparent 38%),
-        radial-gradient(ellipse at 12% 80%, rgba(40,0,90,0.50) 0%, transparent 30%),
-        radial-gradient(ellipse at 44% 14%, rgba(220,100,255,0.18) 0%, transparent 28%),
-        linear-gradient(145deg, #0a0414 0%, #1a0840 18%, #2d0f72 36%, #3a0e8a 50%, #1e0855 68%, #080214 100%);
+        radial-gradient(ellipse at 30% 28%, rgba(80,185,255,0.38) 0%, transparent 38%),
+        radial-gradient(ellipse at 68% 18%, rgba(0,140,255,0.28) 0%, transparent 35%),
+        radial-gradient(ellipse at 50% 58%, rgba(0,70,190,0.65) 0%, rgba(0,45,140,0.45) 28%, transparent 58%),
+        radial-gradient(ellipse at 80% 72%, rgba(0,55,170,0.45) 0%, transparent 40%),
+        radial-gradient(ellipse at 14% 78%, rgba(0,35,110,0.55) 0%, transparent 32%),
+        radial-gradient(ellipse at 45% 12%, rgba(60,170,255,0.18) 0%, transparent 28%),
+        linear-gradient(148deg, #001228 0%, #002a70 16%, #0048b8 34%, #0060d8 50%, #003898 66%, #000c20 100%);
     }
     .win11-bg::after {
       content: '';
       position: absolute; inset: 0;
       background:
-        radial-gradient(ellipse at 35% 38%, rgba(200,140,255,0.22) 0%, transparent 36%),
-        radial-gradient(ellipse at 65% 28%, rgba(255,100,200,0.14) 0%, transparent 28%);
+        radial-gradient(ellipse at 35% 38%, rgba(90,190,255,0.20) 0%, transparent 38%),
+        radial-gradient(ellipse at 62% 26%, rgba(0,160,255,0.13) 0%, transparent 30%);
       animation: w11-bloom-breathe 14s ease-in-out infinite;
     }
     .win11-bg::before {
       content: '';
       position: absolute;
-      top: 15%; left: 18%; width: 60%; height: 55%;
-      background: radial-gradient(ellipse, rgba(160,80,255,0.16) 0%, transparent 70%);
+      top: 12%; left: 16%; width: 64%; height: 58%;
+      background: radial-gradient(ellipse, rgba(60,160,255,0.14) 0%, transparent 70%);
       border-radius: 50%;
       animation: w11-bloom-pulse 9s ease-in-out infinite 2s;
       pointer-events: none;
@@ -344,6 +419,7 @@
       box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
       overflow: hidden;
       display: flex; flex-direction: column;
+      z-index: 2;
     }
     #w11-explorer {
       top: 10px; left: 12px; right: 12px;
@@ -913,36 +989,12 @@
         <div class="feed-hero-title" id="feed-hero-title">Preparing threat storyline…</div>
         <div class="feed-hero-copy" id="feed-hero-copy">This stage view frames the incident before you pivot into the injected Sophos Central experience.</div>
       </div>
-    </div>
-  </div>
-
-  <div class="slide" id="slide-1">
-    <div class="slide-topbar">
-      <div class="topbar-logo">SOPHOS // THREAT BRIEFING</div>
-      <div class="topbar-sep"></div>
-      <div class="topbar-scenario">Why this demo matters</div>
-    </div>
-    <div class="stage-main">
-      <div class="hero-eyebrow" id="brief-eyebrow">Threat Briefing</div>
-      <div class="hero-title" id="brief-title">Loading…</div>
-      <div class="hero-sub" id="brief-subtitle"></div>
-      <div class="stage-grid">
-        <div class="brief-card">
-          <div class="section-h">Attack Story</div>
-          <div class="story-steps" id="story-steps"></div>
+      <div class="feed-body">
+        <div id="feed-timeline-col"></div>
+        <div class="feed-right-col">
+          <div class="section-h">Why Sophos Wins</div>
+          <div id="feed-proof-points"></div>
         </div>
-        <div class="proof-card">
-          <div class="section-h">Why Sophos Wins This Moment</div>
-          <div class="impact-list" id="proof-points"></div>
-          <div class="section-h" style="margin-top:18px;">Milestone Moments</div>
-          <div class="milestone-grid" id="milestone-grid"></div>
-          <div class="section-h" style="margin-top:18px;">MITRE Techniques</div>
-          <div class="pill-row" id="mitre-pills"></div>
-        </div>
-      </div>
-      <div class="cta-row" style="margin-top:28px;">
-        <button class="cta primary" id="briefing-next">Live Attack Simulation &#x2192;</button>
-        <button class="cta secondary" id="briefing-prev">&#x2190; Attack Feed</button>
       </div>
     </div>
   </div>
@@ -1277,7 +1329,7 @@
                   <!-- Search pill -->
                   <div class="w11-search-pill">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
-                    <span class="w11-search-pill-hint">Type here to search</span>
+                    <span class="w11-search-pill-hint">Search</span>
                   </div>
                   <!-- Task View -->
                   <div class="w11-tb-icon" title="Task View">
@@ -1609,7 +1661,7 @@
                   <!-- Search pill -->
                   <div class="w11-search-pill">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
-                    <span class="w11-search-pill-hint">Type here to search</span>
+                    <span class="w11-search-pill-hint">Search</span>
                   </div>
                   <!-- Task View -->
                   <div class="w11-tb-icon" title="Task View">
@@ -1884,7 +1936,7 @@ The faster you contact us, the less damage will be done.</pre>
                 <!-- Search pill -->
                 <div class="w11-search-pill" title="Search">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
-                  <span class="w11-search-pill-hint">Type here to search</span>
+                  <span class="w11-search-pill-hint">Search</span>
                 </div>
                 <!-- Task View -->
                 <div class="w11-tb-icon" title="Task View">
@@ -1932,7 +1984,7 @@ The faster you contact us, the less damage will be done.</pre>
           <!-- CTA bar above taskbar -->
           <div class="w11-cta-bar">
             <button class="cta primary" id="launchBtn">Open Sophos Central Demo &#x2192;</button>
-            <button class="cta secondary" id="restartBtn">&#x2190; Back to Briefing</button>
+            <button class="cta secondary" id="restartBtn">&#x2190; Back to Overview</button>
           </div>
         </div>
       </div>
@@ -1941,7 +1993,7 @@ The faster you contact us, the less damage will be done.</pre>
 </div>
 <button class="nav-arrow disabled" id="nav-prev">&#8249;</button>
 <button class="nav-arrow" id="nav-next">&#8250;</button>
-<div id="dot-nav"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+<div id="dot-nav"><div class="dot active"></div><div class="dot"></div></div>
 <script src="stage.js"></script>
 </body>
 </html>
