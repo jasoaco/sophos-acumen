@@ -30,6 +30,8 @@ git clone https://github.com/jasoaco/sophos-acumen.git
 
 ## Step 2 — Load into Chrome
 
+> **Why Developer mode?** Chrome requires this for any extension not installed from the Chrome Web Store. It's a one-time toggle that stays on permanently — you only do this once.
+
 1. Open a new tab and go to: **`chrome://extensions`**
 2. Turn on **Developer mode** — the toggle is in the top-right corner of that page
 3. Click **Load unpacked**
